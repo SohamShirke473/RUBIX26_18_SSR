@@ -1,27 +1,32 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { ItemCategory } from "./schema";
+import { paginationOptsValidator } from "convex/server";
 export const getAllListings = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { paginationOpts: paginationOptsValidator },
+    handler: async (ctx, args) => {
         return await ctx.db
             .query("listings")
             .withIndex("by_status", q => q.eq("status", "open"))
-            .collect();
+            .paginate(args.paginationOpts);
     },
 });
 
 export const getOpenListingsByType = query({
     args: {
         type: v.union(v.literal("lost"), v.literal("found")),
+        paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, args) => {
         const listings = await ctx.db
             .query("listings")
             .withIndex("by_type", q => q.eq("type", args.type))
-            .collect();
+            .paginate(args.paginationOpts);
 
-        return listings.filter(l => l.status === "open");
+        return {
+            ...listings,
+            page: listings.page.filter(l => l.status === "open")
+        }
     },
 });
 
@@ -47,15 +52,19 @@ export const getListingByUser = query({
 export const getOpenListingsByCategory = query({
     args: {
         category: ItemCategory,
+        paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, args) => {
         const listings = await ctx.db
             .query("listings")
             .withIndex("by_status", q => q.eq("status", "open"))
-            .collect();
+            .paginate(args.paginationOpts);
 
-        return listings.filter(l =>
-            l.categorys.includes(args.category)
-        );
+        return {
+            ...listings,
+            page: listings.page.filter(l =>
+                l.categorys.includes(args.category)
+            )
+        }
     },
 });

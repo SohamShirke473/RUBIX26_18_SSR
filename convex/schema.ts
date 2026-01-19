@@ -70,12 +70,15 @@ export default defineSchema({
     conversations: defineTable({
         listingId: v.id("listings"),
         participantIds: v.array(v.string()),
+        lastMessage: v.optional(v.string()),
+        lastMessageAt: v.optional(v.number()),
         createdAt: v.number(),
     }).index("by_listing", ["listingId"]),
 
     messages: defineTable({
         conversationId: v.id("conversations"),
         senderClerkUserId: v.string(),
+        isRead: v.boolean(),
         content: v.string(),
         createdAt: v.number(),
     }).index("by_conversation", ["conversationId"]),

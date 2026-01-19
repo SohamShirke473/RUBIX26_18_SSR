@@ -4,7 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from "../Provider/ConvexClientProvider";
 import "./globals.css";
 import Header from "@/components/Navbar";
-import Footer from "@/components/Footer";
+
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
