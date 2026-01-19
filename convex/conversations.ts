@@ -28,11 +28,13 @@ export const sendMessage = mutation({
         conversationId: v.id("conversations"),
         content: v.string(),
         senderClerkUserId: v.string(),
+        senderName: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         await ctx.db.insert("messages", {
             conversationId: args.conversationId,
             senderClerkUserId: args.senderClerkUserId,
+            senderName: args.senderName,
             content: args.content,
             isRead: false,
             createdAt: Date.now(),

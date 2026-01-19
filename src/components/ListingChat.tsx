@@ -40,6 +40,7 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                 conversationId: conversation._id,
                 content: newMessage,
                 senderClerkUserId: user.id,
+                senderName: user.fullName || user.firstName || "Anonymous",
             });
             setNewMessage("");
         } catch (error) {
@@ -97,8 +98,13 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                             return (
                                 <div
                                     key={msg._id}
-                                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                                    className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                                 >
+                                    {!isMe && msg.senderName && (
+                                        <span className="text-[10px] text-muted-foreground mb-1 ml-2">
+                                            {msg.senderName}
+                                        </span>
+                                    )}
                                     <div
                                         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${isMe
                                             ? "bg-primary text-primary-foreground rounded-br-none"

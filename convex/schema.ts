@@ -92,6 +92,7 @@ export default defineSchema({
     messages: defineTable({
         conversationId: v.id("conversations"),
         senderClerkUserId: v.string(),
+        senderName: v.optional(v.string()),
         isRead: v.boolean(),
         content: v.string(),
         createdAt: v.number(),
