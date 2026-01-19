@@ -23,7 +23,7 @@ export default defineSchema({
         images: v.array(v.id("_storage")),
 
         type: v.union(v.literal("lost"), v.literal("found")),
-        categorys: v.array(ItemCategory),
+        categories: v.array(ItemCategory),
 
         color: v.optional(v.string()),
         brand: v.optional(v.string()),
@@ -43,7 +43,7 @@ export default defineSchema({
         // Clerk user reference
         clerkUserId: v.string(),
 
-        // Search field (combined title + description)
+        // Search field
         searchText: v.string(),
 
         createdAt: v.number(),
@@ -54,9 +54,8 @@ export default defineSchema({
         .index("by_status", ["status"])
         .searchIndex("search_text", {
             searchField: "searchText",
-            filterFields: ["status", "type"]
+            filterFields: ["status", "type"],
         }),
-
     matches: defineTable({
         lostListingId: v.id("listings"),
         foundListingId: v.id("listings"),

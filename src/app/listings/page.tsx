@@ -11,7 +11,6 @@ import { MapPin, Clock } from "lucide-react";
 import { usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -142,7 +141,7 @@ export default function ListingsPage() {
                       </Badge>
                     </div>
 
-                    <p className="text-xs text-muted-foreground capitalize">{item.categorys[0]}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{item.categories[0]}</p>
                     <h3 className="font-semibold text-sm mb-3 line-clamp-1">{item.title}</h3>
 
                     <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-auto">

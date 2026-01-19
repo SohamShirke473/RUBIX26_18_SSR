@@ -20,13 +20,16 @@ export const createListing = mutation({
         title: v.string(),
         description: v.string(),
         type: v.union(v.literal("lost"), v.literal("found")),
-        categorys: v.array(ItemCategory),
+        categories: v.array(ItemCategory),
 
         locationName: v.string(),
         latitude: v.optional(v.number()),
         longitude: v.optional(v.number()),
 
         images: v.array(v.id("_storage")),
+
+        color: v.optional(v.string()),
+        brand: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();

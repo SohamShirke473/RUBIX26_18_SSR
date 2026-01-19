@@ -33,7 +33,7 @@ export const getAllListings = query({
         const filteredPage =
             args.filterCategory && args.filterCategory.length > 0
                 ? page.filter(l =>
-                    l.categorys.some(c =>
+                    l.categories.some(c =>
                         args.filterCategory!.includes(c)
                     )
                 )
@@ -81,7 +81,7 @@ export const searchListings = query({
         const filteredPage =
             args.filterCategory && args.filterCategory.length > 0
                 ? page.filter(l =>
-                    l.categorys.some(c =>
+                    l.categories.some(c =>
                         args.filterCategory!.includes(c)
                     )
                 )
@@ -144,7 +144,7 @@ export const getOpenListingsByCategory = query({
         return {
             ...listings,
             page: listings.page.filter(l =>
-                l.categorys.includes(args.category)
+                l.categories.includes(args.category)
             )
         }
     },
