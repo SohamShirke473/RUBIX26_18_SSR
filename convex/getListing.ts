@@ -115,8 +115,18 @@ export const getOpenListingsByType = query({
 export const getListingById = query({
     args: { id: v.id("listings") },
     handler: async (ctx, args) => {
+        const listing = await ctx.db.get(args.id);
+        if (!listing) return null;
 
-        return await ctx.db.get(args.id);
+        // Fetch all image URLs from storage
+        const imageUrls = await Promise.all(
+            (listing.images || []).map((imageId) => ctx.storage.getUrl(imageId))
+        );
+
+        return {
+            ...listing,
+            imageUrls: imageUrls.filter((url): url is string => url !== null),
+        };
     },
 })
 
