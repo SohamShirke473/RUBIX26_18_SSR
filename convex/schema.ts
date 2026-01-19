@@ -46,6 +46,9 @@ export default defineSchema({
         // Search field
         searchText: v.string(),
 
+        // Vector embedding for semantic matching (768 dimensions from Gemini)
+        embedding: v.optional(v.array(v.float64())),
+
         createdAt: v.number(),
         updatedAt: v.number(),
     })
@@ -55,6 +58,11 @@ export default defineSchema({
         .searchIndex("search_text", {
             searchField: "searchText",
             filterFields: ["status", "type"],
+        })
+        .vectorIndex("by_embedding", {
+            vectorField: "embedding",
+            dimensions: 768,
+            filterFields: ["type", "status"],
         }),
     matches: defineTable({
         lostListingId: v.id("listings"),

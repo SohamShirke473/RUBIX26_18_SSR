@@ -1,0 +1,194 @@
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { v } from "convex/values";
+
+// ============================================
+// INTERNAL QUERIES (used by actions)
+// ============================================
+
+export const getListingInternal = internalQuery({
+    args: { listingId: v.id("listings") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.listingId);
+    },
+});
+
+export const vectorSearchListings = internalQuery({
+    args: {
+        embedding: v.array(v.float64()),
+        oppositeType: v.union(v.literal("lost"), v.literal("found")),
+        limit: v.number(),
+    },
+    handler: async (ctx, args) => {
+        // Get all open listings of the opposite type
+        const results = await ctx.db
+            .query("listings")
+            .withIndex("by_type", (q) => q.eq("type", args.oppositeType))
+            .filter((q) => q.eq(q.field("status"), "open"))
+            .collect();
+
+        // Calculate cosine similarity for each listing with embeddings
+        const withScores = results
+            .filter((r) => r.embedding && r.embedding.length > 0)
+            .map((listing) => ({
+                ...listing,
+                _score: cosineSimilarity(args.embedding, listing.embedding!),
+            }))
+            .sort((a, b) => b._score - a._score)
+            .slice(0, args.limit);
+
+        return withScores;
+    },
+});
+
+// Cosine similarity helper
+function cosineSimilarity(a: number[], b: number[]): number {
+    if (a.length !== b.length) return 0;
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < a.length; i++) {
+        dotProduct += a[i] * b[i];
+        normA += a[i] * a[i];
+        normB += b[i] * b[i];
+    }
+    if (normA === 0 || normB === 0) return 0;
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// ============================================
+// INTERNAL MUTATIONS (used by actions)
+// ============================================
+
+export const updateListingEmbedding = internalMutation({
+    args: {
+        listingId: v.id("listings"),
+        embedding: v.array(v.float64()),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.listingId, {
+            embedding: args.embedding,
+            updatedAt: Date.now(),
+        });
+    },
+});
+
+export const createMatchInternal = internalMutation({
+    args: {
+        lostListingId: v.id("listings"),
+        foundListingId: v.id("listings"),
+        score: v.number(),
+    },
+    handler: async (ctx, args) => {
+        // Check if match already exists
+        const existing = await ctx.db
+            .query("matches")
+            .withIndex("by_lost", (q) => q.eq("lostListingId", args.lostListingId))
+            .filter((q) => q.eq(q.field("foundListingId"), args.foundListingId))
+            .first();
+
+        if (existing) {
+            // Update score if higher
+            if (args.score > existing.score) {
+                await ctx.db.patch(existing._id, { score: args.score });
+            }
+            return existing._id;
+        }
+
+        return await ctx.db.insert("matches", {
+            lostListingId: args.lostListingId,
+            foundListingId: args.foundListingId,
+            score: args.score,
+            status: "suggested",
+            createdAt: Date.now(),
+        });
+    },
+});
+
+// ============================================
+// PUBLIC QUERIES
+// ============================================
+
+export const getMatchesForListing = query({
+    args: { listingId: v.id("listings") },
+    handler: async (ctx, args) => {
+        const listing = await ctx.db.get(args.listingId);
+        if (!listing) return [];
+
+        let matches;
+        if (listing.type === "lost") {
+            matches = await ctx.db
+                .query("matches")
+                .withIndex("by_lost", (q) => q.eq("lostListingId", args.listingId))
+                .collect();
+        } else {
+            matches = await ctx.db
+                .query("matches")
+                .withIndex("by_found", (q) => q.eq("foundListingId", args.listingId))
+                .collect();
+        }
+
+        // Enrich with listing details
+        const enrichedMatches = await Promise.all(
+            matches.map(async (match) => {
+                const matchedListingId =
+                    listing.type === "lost" ? match.foundListingId : match.lostListingId;
+                const matchedListing = await ctx.db.get(matchedListingId);
+
+                let imageUrl = null;
+                if (matchedListing?.images?.length) {
+                    imageUrl = await ctx.storage.getUrl(matchedListing.images[0]);
+                }
+
+                return {
+                    ...match,
+                    matchedListing: matchedListing
+                        ? { ...matchedListing, imageUrl }
+                        : null,
+                };
+            })
+        );
+
+        return enrichedMatches.sort((a, b) => b.score - a.score);
+    },
+});
+
+// ============================================
+// PUBLIC MUTATIONS
+// ============================================
+
+export const confirmMatch = mutation({
+    args: { matchId: v.id("matches") },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const match = await ctx.db.get(args.matchId);
+        if (!match) throw new Error("Match not found");
+
+        // Update match status
+        await ctx.db.patch(args.matchId, { status: "confirmed" });
+
+        // Update both listings to "matched" status
+        await ctx.db.patch(match.lostListingId, {
+            status: "matched",
+            updatedAt: Date.now(),
+        });
+        await ctx.db.patch(match.foundListingId, {
+            status: "matched",
+            updatedAt: Date.now(),
+        });
+
+        return { success: true };
+    },
+});
+
+export const rejectMatch = mutation({
+    args: { matchId: v.id("matches") },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        await ctx.db.patch(args.matchId, { status: "rejected" });
+        return { success: true };
+    },
+});

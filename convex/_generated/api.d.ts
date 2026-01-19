@@ -10,6 +10,8 @@
 
 import type * as conversations from "../conversations.js";
 import type * as getListing from "../getListing.js";
+import type * as matching from "../matching.js";
+import type * as matchingHelpers from "../matchingHelpers.js";
 import type * as report from "../report.js";
 
 import type {
@@ -21,6 +23,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   conversations: typeof conversations;
   getListing: typeof getListing;
+  matching: typeof matching;
+  matchingHelpers: typeof matchingHelpers;
   report: typeof report;
 }>;
 

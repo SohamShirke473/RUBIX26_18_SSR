@@ -1,4 +1,5 @@
 import { mutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { ItemCategory } from "./schema";
 
@@ -35,7 +36,7 @@ export const createListing = mutation({
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new Error("Unauthorized");
 
-        return await ctx.db.insert("listings", {
+        const listingId = await ctx.db.insert("listings", {
             ...args,
             clerkUserId: identity.subject,
             status: "open",
@@ -43,5 +44,13 @@ export const createListing = mutation({
             createdAt: Date.now(),
             updatedAt: Date.now(),
         });
+
+        // Schedule the matching process to run in the background
+        // This generates embeddings and finds potential matches
+        await ctx.scheduler.runAfter(0, internal.matching.processNewListing, {
+            listingId,
+        });
+
+        return listingId;
     },
 });
