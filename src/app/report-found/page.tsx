@@ -174,12 +174,12 @@ const ReportFound: React.FC = () => {
   /* ---------- UI ---------- */
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans relative overflow-hidden">
       <div className="bg-teal-500 h-2 w-full" />
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         <a href="/">
-          <Button variant="ghost" className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent">
+          <Button variant="ghost" className="mb-8 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent dark:hover:bg-transparent">
             <ArrowLeft
               size={16}
               className="mr-2 group-hover:-translate-x-1 transition-transform"
@@ -191,8 +191,8 @@ const ReportFound: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-16 items-start">
           {/* Left Column */}
           <div className="lg:w-1/3 space-y-8">
-            <div className="w-20 h-20 bg-teal-50 rounded-[2.5rem] flex items-center justify-center shadow-inner">
-              <Heart className="text-teal-500 fill-teal-500" size={32} />
+            <div className="w-20 h-20 bg-teal-50 dark:bg-teal-900/20 rounded-[2.5rem] flex items-center justify-center shadow-inner">
+              <Heart className="text-teal-500 dark:text-teal-400 fill-teal-500 dark:fill-teal-400" size={32} />
             </div>
 
             <div>
@@ -205,7 +205,7 @@ const ReportFound: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
+            <div className="p-6 bg-slate-50/40 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 flex gap-4">
               <ShieldCheck className="text-teal-500 shrink-0" size={24} />
               <p className="text-sm text-slate-600 font-medium">
                 <strong>Safety First:</strong> Avoid sharing your personal phone
@@ -217,22 +217,22 @@ const ReportFound: React.FC = () => {
           {/* Right Column */}
           <div className="lg:w-2/3 w-full relative">
             {showSuccess && (
-              <div className="absolute inset-0 bg-white/95 z-30 flex flex-col items-center justify-center rounded-[3rem] animate-in fade-in zoom-in duration-500">
-                <div className="bg-teal-100 p-6 rounded-full mb-4">
+              <div className="absolute inset-0 bg-white/95 dark:bg-slate-950/95 z-30 flex flex-col items-center justify-center rounded-[3rem] animate-in fade-in zoom-in duration-500">
+                <div className="bg-teal-100 dark:bg-teal-900/40 p-6 rounded-full mb-4">
                   <PartyPopper
-                    className="text-teal-600 animate-bounce"
+                    className="text-teal-600 dark:text-teal-300 animate-bounce"
                     size={48}
                   />
                 </div>
                 <h2 className="text-4xl font-black">Thank You!</h2>
-                <p className="text-slate-500 mt-2 font-medium">
+                <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
                   Your good deed is now live on the feed.
                 </p>
               </div>
             )}
 
             <Card className={cn(
-              "border-2 border-slate-50 shadow-2xl shadow-teal-900/10 transition-all duration-500 rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-sm",
+              "border-2 border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 shadow-teal-900/10 transition-all duration-500 rounded-[3rem] overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm",
               isSubmitting && "blur-sm grayscale"
             )}>
               <CardContent className="p-8 md:p-12">

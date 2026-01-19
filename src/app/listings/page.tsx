@@ -49,9 +49,9 @@ export default function ListingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
       <div className="bg-teal-500 h-2 w-full" />
-      <main className="py-10  px-4">
+      <main className="py-10 px-4">
         <div className="container-tight">
           <h1 className="text-4xl font-display font-bold mb-8">
             Recent Lost & Found Items
@@ -118,7 +118,7 @@ export default function ListingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {results?.map((item) => (
               <Link key={item._id} href={`/listings/${item._id}`} className="group">
-                <Card className="overflow-hidden rounded-2xl border border-border hover:shadow-md transition h-full flex flex-col">
+                <Card className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 hover:shadow-md transition h-full flex flex-col">
                   <div className="aspect-[4/3] overflow-hidden bg-muted relative">
                     {item.imageUrl ? (
                       <Image

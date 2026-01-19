@@ -27,7 +27,7 @@ export default function MyListings() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold tracking-tight">My Items</h2>
-                <div className="flex p-1 bg-muted rounded-lg">
+                <div className="flex p-1 bg-muted dark:bg-slate-800 rounded-lg border dark:border-slate-700">
                     <button
                         onClick={() => setActiveTab("lost")}
                         className={cn(
@@ -58,14 +58,14 @@ export default function MyListings() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
             ) : filteredListings.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed rounded-xl">
-                    <p className="text-muted-foreground">No {activeTab} items reported yet.</p>
+                <div className="text-center py-12 border-2 border-dashed dark:border-slate-700 rounded-xl">
+                    <p className="text-muted-foreground dark:text-slate-400">No {activeTab} items reported yet.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredListings.map((item) => (
                         <Link key={item._id} href={`/listings/${item._id}`} className="group">
-                            <Card className="overflow-hidden rounded-2xl border border-border hover:shadow-md transition h-full flex flex-col">
+                            <Card className="overflow-hidden rounded-2xl border border-border dark:border-slate-700 dark:bg-slate-800 hover:shadow-md transition h-full flex flex-col">
                                 <div className="aspect-4/3 overflow-hidden bg-muted relative">
                                     {item.imageUrl ? (
                                         <Image
@@ -76,7 +76,7 @@ export default function MyListings() {
                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground dark:text-slate-400">
                                             No Image
                                         </div>
                                     )}
@@ -88,9 +88,9 @@ export default function MyListings() {
                                             {item.type}
                                         </Badge>
                                         <Badge variant="outline" className={cn(
-                                            item.status === "open" ? "text-green-600 border-green-200" :
-                                                item.status === "matched" ? "text-blue-600 border-blue-200" :
-                                                    "text-gray-600 border-gray-200"
+                                            item.status === "open" ? "text-green-600 dark:text-green-400 border-green-200 dark:border-green-800" :
+                                                item.status === "matched" ? "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" :
+                                                    "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"
                                         )}>
                                             {item.status}
                                         </Badge>
@@ -99,7 +99,7 @@ export default function MyListings() {
                                     <p className="text-xs text-muted-foreground capitalize">{item.categories[0]}</p>
                                     <h3 className="font-semibold text-sm mb-3 line-clamp-1">{item.title}</h3>
 
-                                    <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-auto">
+                                    <div className="flex flex-col gap-1 text-xs text-muted-foreground dark:text-slate-400 mt-auto">
                                         <span className="flex items-center gap-1">
                                             <MapPin className="h-3 w-3" />
                                             <span className="line-clamp-1">{item.locationName}</span>

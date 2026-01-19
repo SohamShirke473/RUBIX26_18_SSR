@@ -86,11 +86,11 @@ const AdminDashboard = () => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="border-2 border-orange-500/50 bg-orange-100/20 rounded-xl p-8 text-center flex flex-col items-center gap-4 max-w-md">
-          <AlertCircle className="h-8 w-8 text-orange-600" />
+        <div className="border-2 border-orange-500/50 dark:border-orange-600/50 bg-orange-100/20 dark:bg-orange-950/30 rounded-xl p-8 text-center flex flex-col items-center gap-4 max-w-md">
+          <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           <div>
-            <p className="text-orange-900 font-semibold text-lg mb-2">Access Denied</p>
-            <p className="text-orange-800 text-sm">You do not have permission to access the admin dashboard.</p>
+            <p className="text-orange-900 dark:text-orange-200 font-semibold text-lg mb-2">Access Denied</p>
+            <p className="text-orange-800 dark:text-orange-300 text-sm">You do not have permission to access the admin dashboard.</p>
           </div>
           <Button onClick={() => router.push("/")} variant="outline" className="w-full">
             Return to Home
@@ -122,13 +122,13 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
       <div className="bg-teal-500 h-2 w-full" />
       <div className="container py-10 px-4">
         <Button
           onClick={() => router.push("/")}
           variant="ghost"
-          className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent"
+          className="mb-8 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent dark:hover:bg-transparent"
         >
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Home
@@ -229,7 +229,7 @@ const AdminDashboard = () => {
                 <tbody>
                   {conversations && conversations.length > 0 ? (
                     conversations.map((conv) => (
-                      <tr key={conv._id} className="border-b hover:bg-muted/50 transition">
+                      <tr key={conv._id} className="border-b dark:border-slate-700 hover:bg-muted/50 dark:hover:bg-slate-800/50 transition">
                         <td className="py-3 px-4">
                           <Link href={`/listings/${conv.listingId}`} className="hover:text-teal-600 transition flex items-center gap-2">
                             {conv.listingImage && (
@@ -293,7 +293,7 @@ const AdminDashboard = () => {
                 <tbody>
                   {listings && listings.length > 0 ? (
                     listings.map((listing) => (
-                      <tr key={listing._id} className="border-b hover:bg-muted/50 transition">
+                      <tr key={listing._id} className="border-b dark:border-slate-700 hover:bg-muted/50 dark:hover:bg-slate-800/50 transition">
                         <td className="py-3 px-4">
                           <Link href={`/listings/${listing._id}`} className="hover:text-teal-600 transition">
                             <div className="font-medium text-sm truncate max-w-xs">

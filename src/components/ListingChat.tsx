@@ -69,15 +69,15 @@ export default function ListingChat({ listingId }: ListingChatProps) {
     }
 
     return (
-        <div className="border rounded-2xl bg-card flex flex-col h-[600px] shadow-sm">
-            <div className="p-4 border-b flex items-center justify-between bg-muted/30 rounded-t-2xl">
+        <div className="border dark:border-slate-700 rounded-2xl bg-card dark:bg-slate-800 flex flex-col h-[600px] shadow-sm">
+            <div className="p-4 border-b dark:border-slate-700 flex items-center justify-between bg-muted/30 dark:bg-slate-700/30 rounded-t-2xl">
                 <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                        <Send className="w-4 h-4 text-primary" />
+                    <div className="bg-primary/10 dark:bg-teal-900/30 p-2 rounded-full">
+                        <Send className="w-4 h-4 text-primary dark:text-teal-400" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-sm">Listing Chat</h3>
-                        <p className="text-xs text-muted-foreground">{conversation.participantIds.length} Participants</p>
+                        <p className="text-xs text-muted-foreground dark:text-slate-400">{conversation.participantIds.length} Participants</p>
                     </div>
                 </div>
             </div>
@@ -88,9 +88,9 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                         <div className="flex justify-center py-4">Loading messages...</div>
                     ) : messages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full py-10 text-center space-y-2 opacity-60">
-                            <UserCircle2 className="w-12 h-12 text-muted-foreground" />
+                            <UserCircle2 className="w-12 h-12 text-muted-foreground dark:text-slate-500" />
                             <p className="text-sm font-medium">No messages yet</p>
-                            <p className="text-xs text-muted-foreground">Be the first to say hello!</p>
+                            <p className="text-xs text-muted-foreground dark:text-slate-400">Be the first to say hello!</p>
                         </div>
                     ) : (
                         messages.map((msg) => {
@@ -101,18 +101,18 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                                     className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                                 >
                                     {!isMe && msg.senderName && (
-                                        <span className="text-[10px] text-muted-foreground mb-1 ml-2">
+                                        <span className="text-[10px] text-muted-foreground dark:text-slate-400 mb-1 ml-2">
                                             {msg.senderName}
                                         </span>
                                     )}
                                     <div
                                         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${isMe
-                                            ? "bg-primary text-primary-foreground rounded-br-none"
-                                            : "bg-muted text-muted-foreground rounded-bl-none"
+                                            ? "bg-primary dark:bg-teal-600 text-primary-foreground dark:text-white rounded-br-none"
+                                            : "bg-muted dark:bg-slate-700 text-muted-foreground dark:text-slate-200 rounded-bl-none"
                                             }`}
                                     >
                                         <p>{msg.content}</p>
-                                        <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground/70"}`}>
+                                        <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/70 dark:text-white/70" : "text-muted-foreground/70 dark:text-slate-400/70"}`}>
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
@@ -123,7 +123,7 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                 </div>
             </div>
 
-            <div className="p-4 border-t bg-background rounded-b-2xl">
+            <div className="p-4 border-t dark:border-slate-700 bg-background dark:bg-slate-900 rounded-b-2xl">
                 <div className="flex gap-2">
                     <Input
                         value={newMessage}
@@ -131,7 +131,7 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                         onKeyDown={handleKeyDown}
                         placeholder={user ? "Type a message..." : "Sign in to chat"}
                         disabled={!user}
-                        className="flex-1"
+                        className="flex-1 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400"
                     />
                     <Button
                         onClick={handleSendMessage}

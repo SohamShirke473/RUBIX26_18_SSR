@@ -10,12 +10,12 @@ export default function Home() {
   const { user, isLoaded } = useUser();
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans relative overflow-hidden">
       <div className="bg-teal-500 h-2 w-full" />
       <main className="container-tight py-10 mt-4 p-4 ">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-tight text-slate-900">
+            <h1 className="text-3xl font-display font-bold tracking-tight text-slate-900 dark:text-slate-50">
               {isLoaded && user ? `Welcome back, ${user.firstName}!` : "Welcome to Rubix"}
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -58,9 +58,9 @@ export default function Home() {
             <MatchSuggestions />
 
             {/* Helpful tip card */}
-            <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl">
-              <h3 className="font-semibold text-blue-900 text-sm mb-1">Tip</h3>
-              <p className="text-xs text-blue-700 leading-relaxed">
+            <div className="bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 p-4 rounded-xl">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-200 text-sm mb-1">Tip</h3>
+              <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
                 Matches are suggested based on title, description, and location similarities. The more details you provide, the better the matches!
               </p>
             </div>

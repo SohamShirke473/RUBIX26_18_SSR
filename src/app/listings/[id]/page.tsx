@@ -46,8 +46,8 @@ export default function ListingDetailPage() {
     if (listing === null) {
         return (
             <div className="container max-w-7xl py-20 px-4 sm:px-6">
-                <div className="border-2 border-destructive/50 bg-destructive/10 rounded-xl p-8 text-center">
-                    <p className="text-destructive font-semibold text-lg">Listing not found</p>
+                <div className="border-2 border-destructive/50 dark:border-destructive/60 bg-destructive/10 dark:bg-destructive/20 rounded-xl p-8 text-center">
+                    <p className="text-destructive dark:text-red-400 font-semibold text-lg">Listing not found</p>
                 </div>
             </div>
         );
@@ -70,11 +70,11 @@ export default function ListingDetailPage() {
 
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col items-center justify-center">
             <div className="container max-w-7xl py-8 space-y-6 px-4 sm:px-6">
                 {/* Back Button */}
                 <Link href="/listings">
-                    <Button variant="ghost" className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent">
+                    <Button variant="ghost" className="mb-8 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent dark:hover:bg-transparent">
                         <ArrowLeft
                             size={16}
                             className="mr-2 group-hover:-translate-x-1 transition-transform"

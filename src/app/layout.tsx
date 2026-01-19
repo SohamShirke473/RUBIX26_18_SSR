@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from "../Provider/ConvexClientProvider";
+import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const geistSans = Geist({
@@ -28,17 +29,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body
 
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProvider>
-          <ConvexClientProvider>
-            <Navbar />
-            {children}
-          </ConvexClientProvider>
-        </ClerkProvider>
+        <ThemeProvider>
+          <ClerkProvider>
+            <ConvexClientProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </ConvexClientProvider>
+          </ClerkProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

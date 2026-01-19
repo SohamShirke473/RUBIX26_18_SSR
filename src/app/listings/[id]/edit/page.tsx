@@ -70,8 +70,8 @@ const EditListingPage = () => {
   if (listing === null) {
     return (
       <div className="container max-w-2xl py-20 px-4">
-        <div className="border-2 border-destructive/50 bg-destructive/10 rounded-xl p-8 text-center">
-          <p className="text-destructive font-semibold text-lg">Listing not found</p>
+        <div className="border-2 border-destructive/50 dark:border-destructive/60 bg-destructive/10 dark:bg-destructive/20 rounded-xl p-8 text-center">
+          <p className="text-destructive dark:text-red-400 font-semibold text-lg">Listing not found</p>
         </div>
       </div>
     );
@@ -80,11 +80,11 @@ const EditListingPage = () => {
   if (isLoaded && user && listing.clerkUserId !== user.id) {
     return (
       <div className="container max-w-2xl py-20 px-4">
-        <div className="border-2 border-orange-500/50 bg-orange-100/20 rounded-xl p-8 text-center flex items-start gap-4">
-          <AlertCircle className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
+        <div className="border-2 border-orange-500/50 dark:border-orange-600/50 bg-orange-100/20 dark:bg-orange-950/30 rounded-xl p-8 text-center flex items-start gap-4">
+          <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-1" />
           <div className="text-left">
-            <p className="text-orange-900 font-semibold">Access Denied</p>
-            <p className="text-orange-800 text-sm mt-1">You can only edit your own listings.</p>
+            <p className="text-orange-900 dark:text-orange-200 font-semibold">Access Denied</p>
+            <p className="text-orange-800 dark:text-orange-300 text-sm mt-1">You can only edit your own listings.</p>
           </div>
         </div>
       </div>
@@ -125,31 +125,31 @@ const EditListingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col items-center">
       <div className="bg-teal-500 h-2 w-full" />
       <div className="container max-w-2xl py-10 px-4">
         <Button
           onClick={() => router.back()}
           variant="ghost"
-          className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent"
+          className="mb-8 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent dark:hover:bg-transparent"
         >
           <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back
         </Button>
 
-        <Card className="border-2 border-slate-50 shadow-lg rounded-2xl">
+        <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-lg dark:shadow-xl rounded-2xl">
           <CardContent className="p-8">
             <h1 className="text-3xl font-bold mb-8">Edit Listing</h1>
 
             {success && (
-              <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg">
-                <p className="text-green-800 font-medium">Listing updated successfully!</p>
+              <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
+                <p className="text-green-800 dark:text-green-200 font-medium">Listing updated successfully!</p>
               </div>
             )}
 
             {error && (
-              <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
-                <p className="text-red-800 font-medium">{error}</p>
+              <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
+                <p className="text-red-800 dark:text-red-200 font-medium">{error}</p>
               </div>
             )}
 

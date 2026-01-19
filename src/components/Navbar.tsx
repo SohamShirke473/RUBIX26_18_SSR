@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, MapPin, Package, Search, BarChart3 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
@@ -44,7 +45,7 @@ const Header = () => {
                   href={link.href}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${pathname === link.href
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted "
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -55,7 +56,8 @@ const Header = () => {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle />
             {isAdmin && (
               <Link href="/admin">
                 <Button variant="outline" size="sm" className="gap-2">
@@ -119,6 +121,7 @@ const Header = () => {
             )}
 
             <div className="pt-4 px-4 flex items-center gap-3">
+              <ThemeToggle />
               <UserButton afterSignOutUrl="/" />
               <span className="text-sm text-muted-foreground">Your Account</span>
             </div>
