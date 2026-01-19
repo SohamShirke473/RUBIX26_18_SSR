@@ -22,10 +22,7 @@ const Header = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${isHome
-        ? "bg-transparent"
-        : "bg-card/95 backdrop-blur-md border-b border-border"
-        }`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 bg-card/95 backdrop-blur-md border-b border-border`}
     >
       <div className="container-tight px-3">
         <div className="flex h-16 items-center justify-between">

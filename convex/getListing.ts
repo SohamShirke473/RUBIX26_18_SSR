@@ -133,10 +133,20 @@ export const getListingById = query({
 export const getListingByUser = query({
     args: { clerkUserId: v.string() },
     handler: async (ctx, args) => {
-        return await ctx.db
+        const listings = await ctx.db
             .query("listings")
             .withIndex("by_user", (q) => q.eq("clerkUserId", args.clerkUserId))
             .collect();
+
+        return await Promise.all(
+            listings.map(async (listing) => ({
+                ...listing,
+                imageUrl:
+                    listing.images?.length
+                        ? await ctx.storage.getUrl(listing.images[0])
+                        : null,
+            }))
+        );
     },
 })
 

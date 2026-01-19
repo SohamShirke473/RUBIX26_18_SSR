@@ -50,6 +50,7 @@ export default function ListingsPage() {
 
   return (
     <div className="min-h-screen bg-background px-4">
+      <div className="bg-teal-500 h-2 w-full" />
       <main className="py-10">
         <div className="container-tight">
           <h1 className="text-4xl font-display font-bold mb-8">
