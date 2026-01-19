@@ -43,12 +43,19 @@ export default defineSchema({
         // Clerk user reference
         clerkUserId: v.string(),
 
+        // Search field (combined title + description)
+        searchText: v.string(),
+
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index("by_type", ["type"])
         .index("by_user", ["clerkUserId"])
-        .index("by_status", ["status"]),
+        .index("by_status", ["status"])
+        .searchIndex("search_text", {
+            searchField: "searchText",
+            filterFields: ["status", "type"]
+        }),
 
     matches: defineTable({
         lostListingId: v.id("listings"),

@@ -36,6 +36,7 @@ export const createListing = mutation({
             ...args,
             clerkUserId: identity.subject,
             status: "open",
+            searchText: args.title + " " + args.description,
             createdAt: Date.now(),
             updatedAt: Date.now(),
         });
