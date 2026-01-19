@@ -1,5 +1,19 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+export const ItemCategory = v.union(
+    v.literal("wallet"),
+    v.literal("phone"),
+    v.literal("keys"),
+    v.literal("bag"),
+    v.literal("documents"),
+    v.literal("electronics"),
+    v.literal("jewelry"),
+    v.literal("clothing"),
+    v.literal("id_card"),
+    v.literal("cash"),
+    v.literal("other")
+);
+
 
 export default defineSchema({
     listings: defineTable({
@@ -9,7 +23,7 @@ export default defineSchema({
         images: v.array(v.id("_storage")),
 
         type: v.union(v.literal("lost"), v.literal("found")),
-        category: v.string(),
+        categorys: v.array(ItemCategory),
 
         color: v.optional(v.string()),
         brand: v.optional(v.string()),
@@ -33,7 +47,6 @@ export default defineSchema({
         updatedAt: v.number(),
     })
         .index("by_type", ["type"])
-        .index("by_category", ["category"])
         .index("by_user", ["clerkUserId"])
         .index("by_status", ["status"]),
 
@@ -57,12 +70,15 @@ export default defineSchema({
     conversations: defineTable({
         listingId: v.id("listings"),
         participantIds: v.array(v.string()),
+        lastMessage: v.optional(v.string()),
+        lastMessageAt: v.optional(v.number()),
         createdAt: v.number(),
     }).index("by_listing", ["listingId"]),
 
     messages: defineTable({
         conversationId: v.id("conversations"),
         senderClerkUserId: v.string(),
+        isRead: v.boolean(),
         content: v.string(),
         createdAt: v.number(),
     }).index("by_conversation", ["conversationId"]),

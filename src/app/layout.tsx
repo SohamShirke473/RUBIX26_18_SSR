@@ -3,7 +3,8 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from "../Provider/ConvexClientProvider";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import Header from "@/components/Navbar";
+
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
