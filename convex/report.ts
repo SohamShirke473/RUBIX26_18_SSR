@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { ItemCategory } from "./schema";
 
 export const generateUploadUrl = mutation({
     args: {},
@@ -19,7 +20,7 @@ export const createListing = mutation({
         title: v.string(),
         description: v.string(),
         type: v.union(v.literal("lost"), v.literal("found")),
-        category: v.string(),
+        categorys: v.array(ItemCategory),
 
         locationName: v.string(),
         latitude: v.optional(v.number()),
