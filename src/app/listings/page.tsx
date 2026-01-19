@@ -6,156 +6,147 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, PackageSearch, PackageCheck, TrendingUp } from "lucide-react";
 
-import { usePaginatedQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { X, Search } from "lucide-react";
-
+const items = [
+  { id: 1, type: "lost", title: "Black Leather Wallet", category: "Wallet", location: "Central Park", date: "2 hours ago", image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=300&fit=crop" },
+  { id: 2, type: "found", title: "iPhone 15 Pro", category: "Electronics", location: "Coffee Shop", date: "4 hours ago", image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=300&fit=crop", similarCount: 3 },
+  { id: 3, type: "lost", title: "Golden Retriever - Max", category: "Pets", location: "Riverside", date: "1 day ago", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop" },
+  { id: 4, type: "found", title: "Car Keys", category: "Keys", location: "Station", date: "3 hours ago", image: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=400&h=300&fit=crop", similarCount: 1 },
+];
 
 export default function ListingsPage() {
-  type FilterType = "all" | "lost" | "found";
-  type ItemCategoryType = "wallet" | "phone" | "keys" | "bag" | "documents" | "electronics" | "jewelry" | "clothing" | "id_card" | "cash" | "other";
-
-  const [filterType, setFilterType] = useState<FilterType>("all");
-  const [selectedCategory, setSelectedCategory] = useState<ItemCategoryType | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const { results, status, loadMore } = usePaginatedQuery(
-    searchQuery
-      ? api.getListing.searchListings
-      : api.getListing.getAllListings,
-    {
-      search: searchQuery || "", // pass empty string if null, though logic handles it
-      filterType: filterType === "all" ? undefined : filterType,
-      filterCategory: selectedCategory ? [selectedCategory] : undefined
-    },
-    { initialNumItems: 10 }
-  );
-
-  const categories: ItemCategoryType[] = [
-    "wallet", "phone", "keys", "bag", "documents", "electronics",
-    "jewelry", "clothing", "id_card", "cash", "other"
-  ];
+  const lostItems = items.filter(item => item.type === "lost");
+  const foundItems = items.filter(item => item.type === "found");
 
   return (
-    <div className="min-h-screen bg-background px-4">
-      <main className="py-10">
-        <div className="container-tight">
-          <h1 className="text-4xl font-display font-bold mb-8">
-            Recent Lost & Found Items
-          </h1>
-          <div className="flex flex-col lg:flex-row gap-4 mb-8 items-start lg:items-center justify-between">
-            {/* Search Input */}
-            <div className="relative flex-1 w-full lg:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search items by title or description..."
-                className="pl-10 h-10 w-full rounded-lg"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition"
-                >
-                  <X className="h-3 w-3 text-muted-foreground" />
-                </button>
-              )}
+    <div className="min-h-screen bg-background">
+
+      <main className="container max-w-7xl py-8 space-y-8 px-4 sm:px-6">
+
+        {/* HERO */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-8 md:p-12">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+          
+          <div className="relative z-10 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-medium text-white">
+              <TrendingUp className="h-3 w-3" />
+              Live Updates
             </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+              Recent Lost & Found Items
+            </h1>
+            <p className="text-white/90 text-lg max-w-2xl">
+              Browse the latest reports from the community and help reunite items with their owners.
+            </p>
+          </div>
+        </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-start sm:items-center">
-              {/* Type Filter */}
-              <div className="flex items-center p-1 bg-muted rounded-lg border border-border">
-                {(["all", "lost", "found"] as FilterType[]).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setFilterType(type)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-sm font-medium transition capitalize",
-                      filterType === type
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {type}
-                  </button>
-                ))}
+        {/* STATS BAR */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Lost Items</p>
+                <p className="text-3xl font-bold mt-1">{lostItems.length}</p>
               </div>
-
-              {/* Category Filter - Dropdown */}
-              <Select
-                value={selectedCategory || "all"}
-                onValueChange={(val) => setSelectedCategory(val === "all" ? null : (val as ItemCategoryType))}
-              >
-                <SelectTrigger className="w-[180px] capitalize">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="capitalize">
-                      {cat.replace("_", " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="h-12 w-12 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <PackageSearch className="h-6 w-6 text-destructive" />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {results?.map((item) => (
-              <Link key={item._id} href={`/listings/${item._id}`} className="group">
-                <Card className="overflow-hidden rounded-2xl border border-border hover:shadow-md transition h-full flex flex-col">
-                  <div className="aspect-[4/3] overflow-hidden bg-muted relative">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        No Image
-                      </div>
-                    )}
+          <div className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Found Items</p>
+                <p className="text-3xl font-bold mt-1">{foundItems.length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <PackageCheck className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </div>
+
+          <div className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Active Matches</p>
+                <p className="text-3xl font-bold mt-1">
+                  {foundItems.reduce((acc, item) => acc + (item.similarCount || 0), 0)}
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-orange-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ALL ITEMS GRID */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <PackageCheck className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">All Listings</h2>
+              <p className="text-sm text-muted-foreground">
+                Browse through all reported items
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {items.map((item) => (
+              <Link key={item.id} href={`/listings/${item.id}`}>
+                <div className="group relative border rounded-xl overflow-hidden bg-card hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer">
+                  <div className="aspect-[4/3] overflow-hidden bg-muted">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
 
-                  <CardContent className="p-4 flex flex-col flex-1">
-                    <div className="flex gap-2 mb-2">
-                      <Badge variant={item.type === "lost" ? "destructive" : "default"} >
-                        {item.type}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge 
+                        variant={item.type === "lost" ? "destructive" : "default"}
+                        className="shadow-sm"
+                      >
+                        {item.type === "lost" ? "Lost" : "Found"}
                       </Badge>
+                      {item.type === "found" && item.similarCount && item.similarCount > 0 && (
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500/10 border border-orange-500/20">
+                          <div className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+                          <span className="text-xs font-semibold text-orange-600">
+                            {item.similarCount} Match{item.similarCount !== 1 ? 'es' : ''}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    <p className="text-xs text-muted-foreground capitalize">{item.categories[0]}</p>
-                    <h3 className="font-semibold text-sm mb-3 line-clamp-1">{item.title}</h3>
-
-                    <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-auto">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span className="line-clamp-1">{item.locationName}</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(item.createdAt).toLocaleDateString()}
-                      </span>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">{item.category}</p>
+                      <h3 className="font-semibold text-base group-hover:text-primary transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{item.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 flex-shrink-0" />
+                        <span>{item.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
@@ -183,6 +174,7 @@ export default function ListingsPage() {
             </div>
           )}
         </div>
+        
       </main>
     </div>
   );
