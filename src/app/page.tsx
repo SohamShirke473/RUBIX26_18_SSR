@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans relative overflow-hidden">
       <div className="bg-teal-500 h-2 w-full" />
-      <main className="container-tight py-10 mt-4">
+      <main className="container-tight py-10 mt-4 p-4 ">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <div>
             <h1 className="text-3xl font-display font-bold tracking-tight text-slate-900">

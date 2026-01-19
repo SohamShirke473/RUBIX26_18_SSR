@@ -38,10 +38,19 @@ export const sendMessage = mutation({
             createdAt: Date.now(),
         });
 
-        await ctx.db.patch(args.conversationId, {
-            lastMessage: args.content,
-            lastMessageAt: Date.now(),
-        });
+        const conversation = await ctx.db.get(args.conversationId);
+        if (conversation && !conversation.participantIds.includes(args.senderClerkUserId)) {
+            await ctx.db.patch(args.conversationId, {
+                participantIds: [...conversation.participantIds, args.senderClerkUserId],
+                lastMessage: args.content,
+                lastMessageAt: Date.now(),
+            });
+        } else {
+            await ctx.db.patch(args.conversationId, {
+                lastMessage: args.content,
+                lastMessageAt: Date.now(),
+            });
+        }
     },
 });
 export const getMessages = query({
@@ -56,5 +65,17 @@ export const getMessages = query({
             )
             .order("asc")
             .collect();
+    },
+});
+
+export const getConversation = query({
+    args: {
+        listingId: v.id("listings"),
+    },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("conversations")
+            .withIndex("by_listing", q => q.eq("listingId", args.listingId))
+            .first();
     },
 });

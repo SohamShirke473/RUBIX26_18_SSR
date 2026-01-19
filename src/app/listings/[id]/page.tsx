@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ListingChat from "@/components/ListingChat";
 
 export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
@@ -59,7 +60,7 @@ export default function ListingDetailPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center">
             <div className="container max-w-7xl py-8 space-y-6 px-4 sm:px-6">
                 {/* Back Button */}
                 <Link href="/listings">
@@ -269,46 +270,8 @@ export default function ListingDetailPage() {
                 </div>
 
                 {/* Chat Section (Full Width Below) */}
-                <div className="border rounded-2xl bg-card p-6 space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Send className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold">Contact About This Item</h2>
-                            <p className="text-sm text-muted-foreground">
-                                Connect with the person who reported this item
-                            </p>
-                        </div>
-                    </div>
-
-                    <Separator />
-
-                    {/* Chat Messages Area */}
-                    <div className="border-2 border-dashed rounded-xl h-64 bg-muted/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
-                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                            <Send className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground">
-                            No messages yet
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            Start a conversation to help reunite this item
-                        </p>
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Type your message..."
-                            className="h-12 bg-muted/50 border-muted-foreground/20 focus-visible:ring-primary"
-                        />
-                        <Button className="h-12 px-6 gap-2">
-                            <Send className="h-4 w-4" />
-                            Send
-                        </Button>
-                    </div>
-                </div>
+                {/* Chat Section (Full Width Below) */}
+                <ListingChat listingId={listingId} />
             </div>
         </div>
     );

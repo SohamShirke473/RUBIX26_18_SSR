@@ -51,6 +51,12 @@ export const createListing = mutation({
             listingId,
         });
 
+        await ctx.db.insert("conversations", {
+            listingId,
+            participantIds: [identity.subject],
+            createdAt: Date.now(),
+        });
+
         return listingId;
     },
 });
