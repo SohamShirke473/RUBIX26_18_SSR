@@ -124,8 +124,6 @@ interface ListingForScoring {
     categories: string[];
     color?: string;
     brand?: string;
-    latitude?: number;
-    longitude?: number;
 }
 
 function calculateRuleScore(
@@ -135,71 +133,30 @@ function calculateRuleScore(
     let score = 0;
     const maxScore = 100;
 
-    // Category overlap (40 points max)
+    // Category overlap (50 points max) - increased from 40 since location removed
     const categoryOverlap = source.categories.filter((c) =>
         target.categories.includes(c)
     ).length;
-    const categoryScore = Math.min(categoryOverlap * 20, 40);
+    const categoryScore = Math.min(categoryOverlap * 25, 50);
     score += categoryScore;
 
-    // Location proximity (30 points max)
-    if (
-        source.latitude &&
-        source.longitude &&
-        target.latitude &&
-        target.longitude
-    ) {
-        const distance = calculateDistance(
-            source.latitude,
-            source.longitude,
-            target.latitude,
-            target.longitude
-        );
-        // Full points if within 1km, decreasing to 0 at 10km
-        if (distance <= 1) {
-            score += 30;
-        } else if (distance <= 10) {
-            score += Math.round(30 * (1 - (distance - 1) / 9));
-        }
-    }
-
-    // Color match (15 points)
+    // Color match (25 points) - increased from 15
     if (
         source.color &&
         target.color &&
         source.color.toLowerCase() === target.color.toLowerCase()
     ) {
-        score += 15;
+        score += 25;
     }
 
-    // Brand match (15 points)
+    // Brand match (25 points) - increased from 15
     if (
         source.brand &&
         target.brand &&
         source.brand.toLowerCase() === target.brand.toLowerCase()
     ) {
-        score += 15;
+        score += 25;
     }
 
     return score / maxScore; // Normalize to 0-1
-}
-
-// Haversine distance formula (returns km)
-function calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-): number {
-    const R = 6371; // Earth's radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
 }

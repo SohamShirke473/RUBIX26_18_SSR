@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Menu, X, MapPin, Package, Search } from "lucide-react";
+import { Menu, X, MapPin, Package, Search, BarChart3 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const isAdmin = useQuery(api.admin.verifyAdminUser, {});
 
   const navLinks = [
     { href: "/listings", label: "Browse Items", icon: Search },
@@ -53,6 +56,14 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            {isAdmin && (
+              <Link href="/admin">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             <UserButton afterSignOutUrl="/" />
           </div>
 
@@ -91,6 +102,21 @@ const Header = () => {
                 </Link>
               );
             })}
+
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${
+                  pathname === "/admin"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BarChart3 className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            )}
 
             <div className="pt-4 px-4 flex items-center gap-3">
               <UserButton afterSignOutUrl="/" />

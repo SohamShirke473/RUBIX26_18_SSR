@@ -1,10 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
-import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X, ArrowLeft, Send } from "lucide-react";
+import Image from "next/image";
+import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X, ArrowLeft, Send, Edit2 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 
@@ -18,12 +19,16 @@ import ListingChat from "@/components/ListingChat";
 export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
     const listingId = params.id as Id<"listings">;
+    const { user, isLoaded } = useUser();
 
     const listing = useQuery(api.getListing.getListingById, { id: listingId });
     const matches = useQuery(api.matchingHelpers.getMatchesForListing, { listingId });
 
     const confirmMatch = useMutation(api.matchingHelpers.confirmMatch);
     const rejectMatch = useMutation(api.matchingHelpers.rejectMatch);
+
+    // Check if current user is the owner
+    const isOwner = isLoaded && user && listing && listing.clerkUserId === user.id;
 
     // Loading state
     if (listing === undefined) {
@@ -101,10 +106,24 @@ export default function ListingDetailPage() {
                     <div className="space-y-6">
                         <div className="space-y-4">
                             <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-                                        {listing.title}
-                                    </h1>
+                        <div>
+                                    <div className="flex items-start justify-between gap-4 mb-4">
+                                        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-0 flex-1">
+                                            {listing.title}
+                                        </h1>
+                                        {isOwner && (
+                                            <Link href={`/listings/${listingId}/edit`}>
+                                                <Button
+                                                    size="icon"
+                                                    variant="outline"
+                                                    className="border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+                                                    title="Edit listing"
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <Badge
                                             variant={listing.type === "lost" ? "destructive" : "default"}

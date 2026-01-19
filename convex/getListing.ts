@@ -10,36 +10,72 @@ export const getAllListings = query({
         search: v.optional(v.string()), // kept for signature compatibility
     },
     handler: async (ctx, args) => {
+        // Start with status index for performance
         let q = ctx.db
             .query("listings")
             .withIndex("by_status", q => q.eq("status", "open"));
 
+        // Apply type filter if present
         if (args.filterType) {
             q = q.filter(f => f.eq(f.field("type"), args.filterType));
         }
 
-        const result = await q.paginate(args.paginationOpts);
+        // If we have a category filter, we need to fetch all and filter in memory
+        // because Convex doesn't support array.includes() in database filters yet
+        if (args.filterCategory && args.filterCategory.length > 0) {
+            const allListings = await q.collect();
 
-        const page = await Promise.all(
-            result.page.map(async (listing) => ({
-                ...listing,
-                imageUrl:
-                    listing.images?.length
+            const filteredListings = allListings.filter(listing => {
+                const categories = listing.categories || [];
+                return args.filterCategory!.some(cat => categories.includes(cat));
+            });
+
+            // Sort by creation time (descending) explicitly since we lost DB order by collecting
+            filteredListings.sort((a, b) => b.createdAt - a.createdAt);
+
+            // Manual pagination
+            const { cursor, numItems } = args.paginationOpts;
+            const startIndex = cursor ? Number(cursor) : 0;
+            const endIndex = startIndex + numItems;
+            const pageItems = filteredListings.slice(startIndex, endIndex);
+
+            const isDone = endIndex >= filteredListings.length;
+            const nextCursor = isDone ? null : String(endIndex);
+
+            // Get image URLs for the page
+            const page = await Promise.all(
+                pageItems.map(async (listing) => ({
+                    ...listing,
+                    imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
-            }))
-        );
+                }))
+            );
 
-        const filteredPage =
-            args.filterCategory && args.filterCategory.length > 0
-                ? page.filter(l =>
-                    l.categories.some(c =>
-                        args.filterCategory!.includes(c)
-                    )
-                )
-                : page;
+            return {
+                page,
+                isDone,
+                continueCursor: nextCursor || "",
+                // Split cursor not rigidly supported in manual pagination without more complex logic,
+                // but relying on simple index offset for now.
+            };
+        } else {
+            // Standard efficient pagination when no category filter is applied
+            const result = await q.order("desc").paginate(args.paginationOpts);
 
-        return { ...result, page: filteredPage };
+            // Get image URLs for the filtered page
+            const page = await Promise.all(
+                result.page.map(async (listing) => ({
+                    ...listing,
+                    imageUrl:
+                        listing.images?.length
+                            ? await ctx.storage.getUrl(listing.images[0])
+                            : null,
+                }))
+            );
+
+            return { ...result, page };
+        }
     },
 });
 
@@ -51,7 +87,7 @@ export const searchListings = query({
         filterCategory: v.optional(v.array(ItemCategory)),
     },
     handler: async (ctx, args) => {
-        const query = ctx.db.query("listings").withSearchIndex(
+        let query = ctx.db.query("listings").withSearchIndex(
             "search_text",
             q => {
                 let s = q
@@ -66,28 +102,56 @@ export const searchListings = query({
             }
         );
 
-        const result = await query.paginate(args.paginationOpts);
+        // If category filter is present, we must collect and filter in memory
+        if (args.filterCategory && args.filterCategory.length > 0) {
+            // Search limits results naturally, so collecting is usually safe
+            const allResults = await query.collect();
 
-        const page = await Promise.all(
-            result.page.map(async (listing) => ({
-                ...listing,
-                imageUrl:
-                    listing.images?.length
+            const filteredResults = allResults.filter(listing => {
+                const categories = listing.categories || [];
+                return args.filterCategory!.some(cat => categories.includes(cat));
+            });
+
+            // Manual pagination
+            const { cursor, numItems } = args.paginationOpts;
+            const startIndex = cursor ? Number(cursor) : 0;
+            const endIndex = startIndex + numItems;
+            const pageItems = filteredResults.slice(startIndex, endIndex);
+
+            const isDone = endIndex >= filteredResults.length;
+            const nextCursor = isDone ? null : String(endIndex);
+
+            const page = await Promise.all(
+                pageItems.map(async (listing) => ({
+                    ...listing,
+                    imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
-            }))
-        );
+                }))
+            );
 
-        const filteredPage =
-            args.filterCategory && args.filterCategory.length > 0
-                ? page.filter(l =>
-                    l.categories.some(c =>
-                        args.filterCategory!.includes(c)
-                    )
-                )
-                : page;
+            return {
+                page,
+                isDone,
+                continueCursor: nextCursor || "",
+            };
 
-        return { ...result, page: filteredPage };
+        } else {
+            const result = await query.paginate(args.paginationOpts);
+
+            // Get image URLs
+            const page = await Promise.all(
+                result.page.map(async (listing) => ({
+                    ...listing,
+                    imageUrl:
+                        listing.images?.length
+                            ? await ctx.storage.getUrl(listing.images[0])
+                            : null,
+                }))
+            );
+
+            return { ...result, page };
+        }
     },
 });
 
@@ -98,15 +162,14 @@ export const getOpenListingsByType = query({
         paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, args) => {
+        // Apply status filter BEFORE pagination
         const listings = await ctx.db
             .query("listings")
             .withIndex("by_type", q => q.eq("type", args.type))
+            .filter(f => f.eq(f.field("status"), "open"))
             .paginate(args.paginationOpts);
 
-        return {
-            ...listings,
-            page: listings.page.filter(l => l.status === "open")
-        }
+        return listings;
     },
 });
 
@@ -156,16 +219,13 @@ export const getOpenListingsByCategory = query({
         paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, args) => {
+        // Use the specific category index
         const listings = await ctx.db
             .query("listings")
-            .withIndex("by_status", q => q.eq("status", "open"))
+            .withIndex("by_category", q => q.eq("categories", args.category as any))
+            .filter(f => f.eq(f.field("status"), "open"))
             .paginate(args.paginationOpts);
 
-        return {
-            ...listings,
-            page: listings.page.filter(l =>
-                l.categories.includes(args.category)
-            )
-        }
+        return listings;
     },
 });

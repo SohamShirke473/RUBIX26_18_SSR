@@ -1,3 +1,5 @@
+// UNUSED: This file contains component examples that are not currently used in the application.
+// It's kept for reference/documentation purposes. Consider removing if not needed.
 "use client"
 
 import * as React from "react"

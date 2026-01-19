@@ -30,8 +30,6 @@ export default defineSchema({
 
         // location
         locationName: v.string(),
-        latitude: v.optional(v.number()),
-        longitude: v.optional(v.number()),
 
         // lifecycle
         status: v.union(
@@ -59,6 +57,7 @@ export default defineSchema({
             searchField: "searchText",
             filterFields: ["status", "type"],
         })
+        .index("by_category", ["categories"])
         .vectorIndex("by_embedding", {
             vectorField: "embedding",
             dimensions: 768,

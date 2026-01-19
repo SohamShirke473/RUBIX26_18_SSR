@@ -83,6 +83,10 @@ const ReportFound: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const MAX_DESCRIPTION_LENGTH = 500;
+  const descriptionLength = formData.description.length;
 
   /* ---------- Handlers ---------- */
 
@@ -110,6 +114,14 @@ const ReportFound: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+
+    // Validate description length
+    if (formData.description.length > MAX_DESCRIPTION_LENGTH) {
+      setError(`Description exceeds maximum length of ${MAX_DESCRIPTION_LENGTH} characters`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -154,7 +166,7 @@ const ReportFound: React.FC = () => {
 
     } catch (error) {
       console.error("Submission failed:", error);
-      alert("Failed to submit report. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to submit report. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -378,10 +390,21 @@ const ReportFound: React.FC = () => {
 
                   {/* Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase pl-1">
-                      <MessageSquare size={14} className="text-teal-500" />
-                      Description & Details
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description" className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase pl-1">
+                        <MessageSquare size={14} className="text-teal-500" />
+                        Description & Details
+                      </Label>
+                      <span className={`text-xs font-medium ${
+                        descriptionLength > MAX_DESCRIPTION_LENGTH
+                          ? "text-red-600"
+                          : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                          ? "text-orange-600"
+                          : "text-slate-400"
+                      }`}>
+                        {descriptionLength}/{MAX_DESCRIPTION_LENGTH}
+                      </span>
+                    </div>
                     <Textarea
                       id="description"
                       name="description"
@@ -389,8 +412,17 @@ const ReportFound: React.FC = () => {
                       onChange={handleChange}
                       required
                       placeholder="Describe specific details..."
-                      className="min-h-[120px] bg-slate-50 border-slate-200 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base"
+                      className={`min-h-[120px] bg-slate-50 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base ${
+                        descriptionLength > MAX_DESCRIPTION_LENGTH
+                          ? "border-2 border-red-500"
+                          : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                          ? "border-2 border-orange-300"
+                          : "border-slate-200"
+                      }`}
                     />
+                    {error && (
+                      <p className="text-sm text-red-600 font-medium">{error}</p>
+                    )}
                   </div>
 
                   {/* Submit */}
