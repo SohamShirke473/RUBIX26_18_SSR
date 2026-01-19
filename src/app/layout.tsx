@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from "../Provider/ConvexClientProvider";
 import "./globals.css";
+import Header from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -34,6 +36,7 @@ export default function RootLayout({
       >
         <ClerkProvider>
           <ConvexClientProvider>
+            <Header />
             {children}
           </ConvexClientProvider>
         </ClerkProvider>
