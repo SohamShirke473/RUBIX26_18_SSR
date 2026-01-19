@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, Bell, MapPin } from "lucide-react";
+import { Menu, X, MapPin } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
 
@@ -17,7 +17,6 @@ const Header = () => {
     { href: "/listings", label: "Browse Items" },
     { href: "/report-lost", label: "Report Lost" },
     { href: "/report-found", label: "Report Found" },
-    { href: "/how-it-works", label: "How It Works" },
   ];
 
   return (
@@ -57,15 +56,6 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-accent rounded-full" />
-            </Button>
-
             <UserButton />
           </div>
 

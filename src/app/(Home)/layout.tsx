@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
     return <>{children}
-    <Footer />
+    {/* <Footer /> */}
     </>;
 }
