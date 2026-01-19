@@ -1,0 +1,24 @@
+# Rubix: Personal Feature Suggestions
+
+Here are some cool ideas that would take Rubix to the next level when you have time:
+
+1. **Gamification & Karma Points**
+   - **Idea**: Reward users who return items with "Karma Points". 
+   - **Why**: Incentivizes good behavior. Users could redeem points for badges or partner discounts.
+
+2. **Map View for Lost Items**
+   - **Idea**: Show a heatmap of where items are commonly lost/found.
+   - **Why**: Visual context helps. "Oh, I lost it near the library," -> checks map -> "Someone reported keys there!"
+
+3. **Courier Integration (Uber/Dunzo/Genie)**
+   - **Idea**: Allow users to "Request Delivery" once matched.
+   - **Why**: Safe and convenient. Users don't have to meet in person if they are busy or uncomfortable.
+
+4. **Image Recognition Auto-Tagging**
+   - **Idea**: When a user uploads a photo, use Gemini to auto-fill the tags (color: red, type: bottle).
+   - **Why**: Reduces friction in reporting.
+
+5. **Community Guardians**
+   - **Idea**: Trusted users (like campus security or building managers) get special "Guardian" accounts to manage lost & found bins.
+
+Good luck with the project! It's looking great.

@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ListingChat from "@/components/ListingChat";
+import VerificationModal from "@/components/verification/VerificationModal";
 
 export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
@@ -128,6 +129,13 @@ export default function ListingDetailPage() {
                                             </Link>
                                         )}
                                     </div>
+
+                                    {!isOwner && listing.type === "found" && ( // Only show on found items if not owner
+                                        <div className="mb-4">
+                                            <VerificationModal listingId={listingId} listingTitle={listing.title} />
+                                        </div>
+                                    )}
+
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <Badge
                                             variant={listing.type === "lost" ? "destructive" : "default"}

@@ -1,5 +1,7 @@
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
+
 
 // ============================================
 // INTERNAL QUERIES (used by actions)
@@ -178,7 +180,18 @@ export const confirmMatch = mutation({
             updatedAt: Date.now(),
         });
 
+        // Fetch one of the listings to get a title
+        const listingItem = await ctx.db.get(match.lostListingId);
+
+        // Schedule email notification
+        await ctx.scheduler.runAfter(0, internal.email.sendMatchConfirmation, {
+            matchId: args.matchId,
+            itemName: listingItem?.title || "Item",
+            recipientId: (await ctx.db.get(match.foundListingId))?.clerkUserId || "unknown",
+        });
+
         return { success: true };
+
     },
 });
 

@@ -3,7 +3,10 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs'
 import ConvexClientProvider from "../Provider/ConvexClientProvider";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { LanguageProvider } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import "./globals.css";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -34,15 +37,19 @@ export default function RootLayout({
 
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          <ClerkProvider>
-            <ConvexClientProvider>
-              <Navbar />
-              {children}
-              <Footer />
-            </ConvexClientProvider>
-          </ClerkProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <ClerkProvider>
+              <ConvexClientProvider>
+                <Navbar />
+                <LanguageSwitcher />
+                {children}
+                <Footer />
+              </ConvexClientProvider>
+            </ClerkProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+
       </body>
     </html>
   );

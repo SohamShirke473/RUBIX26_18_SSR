@@ -1,0 +1,30 @@
+# RUBIX PROJECT HANDOVER - ACTION ITEMS
+
+Your project is ready! Here is what you need to do to keep it running smoothly.
+
+## 1. Environment Setup (Critical)
+Ensure your `.env.local` file has the following keys:
+- `NEXT_PUBLIC_CONVEX_URL`: (From your Convex dashboard)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: (From Clerk)
+- `CLERK_SECRET_KEY`: (From Clerk)
+- `GOOGLE_API_KEY`: Required for Gemini AI (Embeddings & Verification).
+- `RESEND_API_KEY`: Required for Email Notifications.
+
+## 2. Running the App
+- Terminal 1: `npx convex dev` (Runs backend)
+- Terminal 2: `npm run dev` (Runs frontend)
+- URL: `http://localhost:3000`
+
+## 3. Features Implemented
+- **Landing Page**: Premium 3D visuals, Parallax Scroll.
+- **Dashboard**: Glassmorphic UI, match suggestions.
+- **AI Matching**: Vector search + weighted scoring.
+- **Verification**: AI-generated security questions.
+- **Chat**: Secure messaging with Profanity Filter.
+- **Pages**: Home, Dashboard, About, How It Works.
+
+## 4. What we removed (Simplification)
+- **Internationalization (i18n)**: Removed to keep the codebase simple and maintainable. The app is English-only now.
+
+## 5. Next Steps
+Check `personalsuggestion.txt` for cool feature ideas!

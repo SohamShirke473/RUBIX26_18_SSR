@@ -1,5 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { filterProfanity } from "./moderation";
+
 export const getOrCreateConversation = mutation({
     args: {
         listingId: v.id("listings"),
@@ -31,6 +33,14 @@ export const sendMessage = mutation({
         senderName: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const { isClean } = filterProfanity(args.content);
+        if (!isClean) {
+            throw new Error("Message contains inappropriate language.");
+        }
+
         await ctx.db.insert("messages", {
             conversationId: args.conversationId,
             senderClerkUserId: args.senderClerkUserId,
