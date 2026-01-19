@@ -156,22 +156,22 @@ export const searchListings = query({
 });
 
 
-export const getOpenListingsByType = query({
-    args: {
-        type: v.union(v.literal("lost"), v.literal("found")),
-        paginationOpts: paginationOptsValidator,
-    },
-    handler: async (ctx, args) => {
-        // Apply status filter BEFORE pagination
-        const listings = await ctx.db
-            .query("listings")
-            .withIndex("by_type", q => q.eq("type", args.type))
-            .filter(f => f.eq(f.field("status"), "open"))
-            .paginate(args.paginationOpts);
+// export const getOpenListingsByType = query({
+//     args: {
+//         type: v.union(v.literal("lost"), v.literal("found")),
+//         paginationOpts: paginationOptsValidator,
+//     },
+//     handler: async (ctx, args) => {
+//         // Apply status filter BEFORE pagination
+//         const listings = await ctx.db
+//             .query("listings")
+//             .withIndex("by_type", q => q.eq("type", args.type))
+//             .filter(f => f.eq(f.field("status"), "open"))
+//             .paginate(args.paginationOpts);
 
-        return listings;
-    },
-});
+//         return listings;
+//     },
+// });
 
 
 
@@ -213,19 +213,19 @@ export const getListingByUser = query({
     },
 })
 
-export const getOpenListingsByCategory = query({
-    args: {
-        category: ItemCategory,
-        paginationOpts: paginationOptsValidator,
-    },
-    handler: async (ctx, args) => {
-        // Use the specific category index
-        const listings = await ctx.db
-            .query("listings")
-            .withIndex("by_category", q => q.eq("categories", args.category as any))
-            .filter(f => f.eq(f.field("status"), "open"))
-            .paginate(args.paginationOpts);
+// export const getOpenListingsByCategory = query({
+//     args: {
+//         category: ItemCategory,
+//         paginationOpts: paginationOptsValidator,
+//     },
+//     handler: async (ctx, args) => {
+//         // Use the specific category index
+//         const listings = await ctx.db
+//             .query("listings")
+//             .withIndex("by_category", q => q.eq("categories", args.category as any))
+//             .filter(f => f.eq(f.field("status"), "open"))
+//             .paginate(args.paginationOpts);
 
-        return listings;
-    },
-});
+//         return listings;
+//     },
+// });

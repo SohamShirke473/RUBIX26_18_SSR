@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,6 +21,8 @@ export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
     const listingId = params.id as Id<"listings">;
     const { user, isLoaded } = useUser();
+
+    const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
     const listing = useQuery(api.getListing.getListingById, { id: listingId });
     const matches = useQuery(api.matchingHelpers.getMatchesForListing, { listingId });
@@ -64,15 +67,13 @@ export default function ListingDetailPage() {
         await rejectMatch({ matchId });
     };
 
+
+
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center">
             <div className="container max-w-7xl py-8 space-y-6 px-4 sm:px-6">
                 {/* Back Button */}
                 <Link href="/listings">
-                    {/* <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
-                        <ArrowLeft className="h-4 w-4" />
-                        
-                    </Button> */}
                     <Button variant="ghost" className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent">
                         <ArrowLeft
                             size={16}
@@ -87,7 +88,10 @@ export default function ListingDetailPage() {
                     {/* Left: Image */}
                     <div className="space-y-4">
                         {listing.imageUrls && listing.imageUrls.length > 0 ? (
-                            <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 bg-muted">
+                            <div
+                                className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 bg-muted cursor-pointer hover:opacity-95 transition-opacity"
+                                onClick={() => setExpandedImage(listing.imageUrls![0])}
+                            >
                                 <Image
                                     src={listing.imageUrls[0]}
                                     alt={listing.title}
@@ -106,7 +110,7 @@ export default function ListingDetailPage() {
                     <div className="space-y-6">
                         <div className="space-y-4">
                             <div className="flex items-start justify-between gap-4">
-                        <div>
+                                <div className="flex-1">
                                     <div className="flex items-start justify-between gap-4 mb-4">
                                         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-0 flex-1">
                                             {listing.title}
@@ -288,9 +292,40 @@ export default function ListingDetailPage() {
                     </div>
                 </div>
 
-                {/* Chat Section (Full Width Below) */}
-                {/* Chat Section (Full Width Below) */}
+                {/* Chat Section */}
                 <ListingChat listingId={listingId} />
+
+                {/* Lightbox Overlay */}
+                {expandedImage && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 animate-in fade-in duration-200"
+                        onClick={() => setExpandedImage(null)}
+                    >
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-4 right-4 text-white hover:text-gray-300 hover:bg-white/10"
+                            onClick={() => setExpandedImage(null)}
+                        >
+                            <X className="h-8 w-8" />
+                            <span className="sr-only">Close</span>
+                        </Button>
+                        <div
+                            className="relative w-full max-w-5xl h-full flex items-center justify-center p-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="relative w-full h-full">
+                                <Image
+                                    src={expandedImage}
+                                    alt="Expanded view"
+                                    fill
+                                    className="object-contain"
+                                    quality={100}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
