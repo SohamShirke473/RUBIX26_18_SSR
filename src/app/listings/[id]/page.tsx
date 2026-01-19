@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X } from "lucide-react";
+import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X, ArrowLeft, Send } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -28,7 +28,7 @@ export default function ListingDetailPage() {
     if (listing === undefined) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
@@ -36,12 +36,10 @@ export default function ListingDetailPage() {
     // Not found state
     if (listing === null) {
         return (
-            <div className="container py-20">
-                <Card className="border-destructive bg-destructive/10">
-                    <CardContent className="p-6 text-destructive font-medium">
-                        Listing not found
-                    </CardContent>
-                </Card>
+            <div className="container max-w-7xl py-20 px-4 sm:px-6">
+                <div className="border-2 border-destructive/50 bg-destructive/10 rounded-xl p-8 text-center">
+                    <p className="text-destructive font-semibold text-lg">Listing not found</p>
+                </div>
             </div>
         );
     }
@@ -61,197 +59,257 @@ export default function ListingDetailPage() {
     };
 
     return (
-        <div className="container max-w-5xl py-10 space-y-8">
-            <Card>
-                <CardContent className="p-6 space-y-6">
-                    {/* Title + Status */}
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-3xl font-bold">{listing.title}</h1>
-                        <Badge variant={listing.type === "lost" ? "destructive" : "default"}>
-                            {listing.type.toUpperCase()}
-                        </Badge>
-                    </div>
+        <div className="min-h-screen bg-background">
+            <div className="container max-w-7xl py-8 space-y-6 px-4 sm:px-6">
+                {/* Back Button */}
+                <Link href="/listings">
+                    {/* <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                        <ArrowLeft className="h-4 w-4" />
+                        
+                    </Button> */}
+                    <Button variant="ghost" className="mb-8 text-slate-400 hover:text-teal-600 transition-all font-bold uppercase text-xs tracking-widest group p-0 hover:bg-transparent">
+                        <ArrowLeft
+                            size={16}
+                            className="mr-2 group-hover:-translate-x-1 transition-transform"
+                        />
+                        Back to Listings
+                    </Button>
+                </Link>
 
-                    {/* Images */}
-                    {listing.imageUrls && listing.imageUrls.length > 0 && (
-                        <div className="relative w-full h-[350px] rounded-lg overflow-hidden bg-muted">
-                            <Image
-                                src={listing.imageUrls[0]}
-                                alt={listing.title}
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
-                    )}
-
-                    {/* Description */}
-                    <p className="text-muted-foreground leading-relaxed">
-                        {listing.description}
-                    </p>
-
-                    <Separator />
-
-                    {/* Meta Info */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                            <MapPin size={16} /> {listing.locationName}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar size={16} /> {formattedDate}
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Tag size={16} />
-                            {listing.categories.map((cat) => (
-                                <Badge key={cat} variant="outline" className="capitalize">
-                                    {cat.replace("_", " ")}
-                                </Badge>
-                            ))}
-                        </div>
-                        {listing.color && (
-                            <div className="flex items-center gap-2">
-                                Color: <span className="capitalize">{listing.color}</span>
+                {/* Main Content Grid */}
+                <div className="grid lg:grid-cols-[400px_1fr] gap-6">
+                    {/* Left: Image */}
+                    <div className="space-y-4">
+                        {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                            <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 bg-muted">
+                                <Image
+                                    src={listing.imageUrls[0]}
+                                    alt={listing.title}
+                                    fill
+                                    className="object-cover"
+                                />
                             </div>
-                        )}
-                        {listing.brand && (
-                            <div className="flex items-center gap-2">
-                                Brand: <span className="font-medium">{listing.brand}</span>
+                        ) : (
+                            <div className="relative w-full aspect-square rounded-2xl border-2 border-dashed bg-muted flex items-center justify-center">
+                                <Tag className="h-16 w-16 text-muted-foreground" />
                             </div>
                         )}
                     </div>
 
-                    <Separator />
-
-                    {/* Status Badge */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Status:</span>
-                        <Badge
-                            variant={
-                                listing.status === "open"
-                                    ? "outline"
-                                    : listing.status === "matched"
-                                        ? "secondary"
-                                        : "default"
-                            }
-                        >
-                            {listing.status.toUpperCase()}
-                        </Badge>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Potential Matches Section */}
-            <Card>
-                <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-yellow-500" />
-                        <h2 className="font-semibold text-lg">Potential Matches</h2>
-                    </div>
-
-                    {matches === undefined ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                        </div>
-                    ) : matches.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                            No matches found yet. Matches will appear here when similar{" "}
-                            {listing.type === "lost" ? "found" : "lost"} items are reported.
-                        </div>
-                    ) : (
+                    {/* Right: Details */}
+                    <div className="space-y-6">
                         <div className="space-y-4">
-                            {matches.map((match) => (
-                                <div
-                                    key={match._id}
-                                    className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                                >
-                                    {/* Match Image */}
-                                    {match.matchedListing?.imageUrl ? (
-                                        <div className="relative w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
-                                            <Image
-                                                src={match.matchedListing.imageUrl}
-                                                alt={match.matchedListing.title}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="w-20 h-20 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                                            <Tag className="h-6 w-6 text-muted-foreground" />
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+                                        {listing.title}
+                                    </h1>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <Badge
+                                            variant={listing.type === "lost" ? "destructive" : "default"}
+                                            className="text-sm px-3 py-1"
+                                        >
+                                            {listing.type.toUpperCase()}
+                                        </Badge>
+                                        <Badge
+                                            variant={
+                                                listing.status === "open"
+                                                    ? "outline"
+                                                    : listing.status === "matched"
+                                                        ? "secondary"
+                                                        : "default"
+                                            }
+                                            className="text-sm px-3 py-1"
+                                        >
+                                            {listing.status.toUpperCase()}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-lg">Description</h3>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    {listing.description}
+                                </p>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-3">
+                                <h3 className="font-semibold text-lg">Details</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                                        <span className="text-muted-foreground">{listing.locationName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+                                        <span className="text-muted-foreground">{formattedDate}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap text-sm col-span-full">
+                                        <Tag className="h-4 w-4 text-primary flex-shrink-0" />
+                                        {listing.categories.map((cat) => (
+                                            <Badge key={cat} variant="outline" className="capitalize">
+                                                {cat.replace("_", " ")}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    {listing.color && (
+                                        <div className="text-sm">
+                                            <span className="text-muted-foreground">Color: </span>
+                                            <span className="font-medium capitalize">{listing.color}</span>
                                         </div>
                                     )}
-
-                                    {/* Match Details */}
-                                    <div className="flex-1 min-w-0">
-                                        <Link
-                                            href={`/listings/${match.matchedListing?._id}`}
-                                            className="font-medium hover:underline truncate block"
-                                        >
-                                            {match.matchedListing?.title || "Unknown item"}
-                                        </Link>
-                                        <p className="text-sm text-muted-foreground truncate">
-                                            {match.matchedListing?.locationName}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="outline" className="text-xs">
-                                                {Math.round(match.score * 100)}% match
-                                            </Badge>
-                                            <Badge
-                                                variant={
-                                                    match.status === "suggested"
-                                                        ? "secondary"
-                                                        : match.status === "confirmed"
-                                                            ? "default"
-                                                            : "destructive"
-                                                }
-                                                className="text-xs"
-                                            >
-                                                {match.status}
-                                            </Badge>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    {match.status === "suggested" && (
-                                        <div className="flex gap-2 flex-shrink-0">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                onClick={() => handleConfirmMatch(match._id)}
-                                            >
-                                                <Check className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                onClick={() => handleRejectMatch(match._id)}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
+                                    {listing.brand && (
+                                        <div className="text-sm">
+                                            <span className="text-muted-foreground">Brand: </span>
+                                            <span className="font-medium">{listing.brand}</span>
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Potential Matches */}
+                            {matches !== undefined && matches.length > 0 && (
+                                <>
+                                    <Separator />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="h-5 w-5 text-orange-500" />
+                                            <h3 className="font-semibold text-lg">Potential Matches</h3>
+                                            <Badge variant="secondary" className="ml-auto">
+                                                {matches.length}
+                                            </Badge>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {matches.slice(0, 3).map((match) => (
+                                                <div
+                                                    key={match._id}
+                                                    className="flex items-center gap-3 p-3 border rounded-xl hover:bg-muted/50 transition-colors"
+                                                >
+                                                    {match.matchedListing?.imageUrl ? (
+                                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                            <Image
+                                                                src={match.matchedListing.imageUrl}
+                                                                alt={match.matchedListing.title}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                                                            <Tag className="h-6 w-6 text-muted-foreground" />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <Link
+                                                            href={`/listings/${match.matchedListing?._id}`}
+                                                            className="font-medium hover:text-primary transition-colors truncate block text-sm"
+                                                        >
+                                                            {match.matchedListing?.title || "Unknown item"}
+                                                        </Link>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {Math.round(match.score * 100)}% match
+                                                            </Badge>
+                                                            <Badge
+                                                                variant={
+                                                                    match.status === "suggested"
+                                                                        ? "secondary"
+                                                                        : match.status === "confirmed"
+                                                                            ? "default"
+                                                                            : "destructive"
+                                                                }
+                                                                className="text-xs"
+                                                            >
+                                                                {match.status}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+
+                                                    {match.status === "suggested" && (
+                                                        <div className="flex gap-1.5 flex-shrink-0">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 w-8 p-0 border-green-200 hover:bg-green-50 hover:text-green-700"
+                                                                onClick={() => handleConfirmMatch(match._id)}
+                                                            >
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                                onClick={() => handleRejectMatch(match._id)}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {matches.length > 3 && (
+                                            <Button variant="outline" className="w-full" size="sm">
+                                                View All {matches.length} Matches
+                                            </Button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                    </div>
+                </div>
 
-            {/* Chat UI Placeholder */}
-            <Card>
-                <CardContent className="p-6 space-y-4">
-                    <h2 className="font-semibold text-lg">Contact about this item</h2>
-
-                    <div className="border rounded-lg h-64 bg-muted/40 flex items-center justify-center text-sm text-muted-foreground">
-                        Chat messages will appear here
+                {/* Chat Section (Full Width Below) */}
+                <div className="border rounded-2xl bg-card p-6 space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Send className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold">Contact About This Item</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Connect with the person who reported this item
+                            </p>
+                        </div>
                     </div>
 
+                    <Separator />
+
+                    {/* Chat Messages Area */}
+                    <div className="border-2 border-dashed rounded-xl h-64 bg-muted/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
+                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                            <Send className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                            No messages yet
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            Start a conversation to help reunite this item
+                        </p>
+                    </div>
+
+                    {/* Input Area */}
                     <div className="flex gap-2">
-                        <Input placeholder="Type your message..." />
-                        <Button>Send</Button>
+                        <Input
+                            placeholder="Type your message..."
+                            className="h-12 bg-muted/50 border-muted-foreground/20 focus-visible:ring-primary"
+                        />
+                        <Button className="h-12 px-6 gap-2">
+                            <Send className="h-4 w-4" />
+                            Send
+                        </Button>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }
