@@ -16,7 +16,7 @@ const Header = () => {
   const isAdmin = useQuery(api.admin.verifyAdminUser, {});
 
   const navLinks = [
-    { href: "/", label: "Home", icon: Home },
+    { href: "/home", label: "Home", icon: Home },
     { href: "/listings", label: "Browse Items", icon: Search },
     { href: "/report-lost", label: "Report Lost", icon: PackageXIcon },
     { href: "/report-found", label: "Report Found", icon: PackagePlus },
@@ -110,8 +110,8 @@ const Header = () => {
               <Link
                 href="/admin"
                 className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${pathname === "/admin"
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 onClick={() => setIsMenuOpen(false)}
               >

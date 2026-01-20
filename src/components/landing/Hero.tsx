@@ -67,7 +67,7 @@ export default function Hero() {
                         transition={{ delay: 0.6, duration: 0.8 }}
                     >
                         <Link
-                            href="/dashboard"
+                            href="/home"
                             className="inline-flex h-12 items-center justify-center rounded-full bg-slate-900 dark:bg-white px-8 text-sm font-medium text-white dark:text-slate-950 shadow-lg shadow-purple-900/10 transition-all hover:scale-105 hover:bg-slate-800 dark:hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-300 disabled:pointer-events-none disabled:opacity-50"
                         >
                             Get Started
