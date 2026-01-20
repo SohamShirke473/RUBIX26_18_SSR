@@ -7,7 +7,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-flash-lite",
     generationConfig: {
         temperature: 0,
         maxOutputTokens: 800,
@@ -56,12 +56,6 @@ FORMAT REQUIREMENTS:
   1) A JSON array of questions
   2) OR the vague-description fallback object
 
-VAGUE DESCRIPTION FALLBACK:
-If there are not enough explicit facts to generate even ONE solid question,
-output EXACTLY this object and nothing else:
-{
-  "note": "This item description is vague. Generating standard verification questions."
-}
 
 QUESTION FORMAT:
 [
@@ -74,7 +68,7 @@ QUESTION FORMAT:
 
 INPUT:
 Item Title: ${listing.title}
-Item Description: ${listing.description}
+Item Description: ${listing.searchText}
 
 REMINDERS:
 - Exactly 4 options per question
@@ -85,7 +79,12 @@ REMINDERS:
 `;
 
         const result = await model.generateContent(prompt);
-        const rawText = result.response.text().trim();
+        let rawText = result.response.text().trim();
+
+        // Sanitize the output - remove markdown code blocks if present
+        if (rawText.startsWith("```")) {
+            rawText = rawText.replace(/^```\w*\n?/, "").replace(/```$/, "").trim();
+        }
 
         let parsed: unknown;
 

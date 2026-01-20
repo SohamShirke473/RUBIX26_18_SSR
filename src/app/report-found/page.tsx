@@ -1,5 +1,6 @@
 "use client";
 
+/* ---------- Imports ---------- */
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import {
   Heart,
@@ -12,9 +13,11 @@ import {
   X,
   PartyPopper,
   MessageSquare,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
@@ -25,9 +28,6 @@ import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import {
   Select,
@@ -68,6 +68,7 @@ interface FoundFormData {
 const ReportFound: React.FC = () => {
   const generateUploadUrl = useMutation(api.report.generateUploadUrl);
   const createListing = useMutation(api.report.createListing);
+  const generateDescription = useAction(api.ai.generateDescription);
 
   const initialState: FoundFormData = {
     itemName: "",
@@ -82,6 +83,7 @@ const ReportFound: React.FC = () => {
   const [formData, setFormData] = useState<FoundFormData>(initialState);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +112,53 @@ const ReportFound: React.FC = () => {
 
     setFormData((prev) => ({ ...prev, image: file }));
     setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleAutoFill = async () => {
+    if (!formData.image) return;
+
+    setIsGeneratingAI(true);
+    setError(null);
+
+    try {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(formData.image);
+
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
+
+        try {
+          const aiData = await generateDescription({
+            image: base64data,
+            contentType: formData.image?.type || "image/jpeg",
+          });
+
+          setFormData((prev) => ({
+            ...prev,
+            itemName: aiData.title || prev.itemName,
+            description: aiData.description || prev.description,
+            category: (aiData.category as ItemCategoryType) || prev.category,
+            color: aiData.color || prev.color,
+            brand: aiData.brand || prev.brand,
+          }));
+        } catch (err) {
+          console.error("AI Generation failed:", err);
+          setError("Failed to generate description. Please try again or fill manually.");
+        } finally {
+          setIsGeneratingAI(false);
+        }
+      };
+
+      reader.onerror = () => {
+        setError("Failed to process image.");
+        setIsGeneratingAI(false);
+      };
+
+    } catch (err) {
+      console.error("Image processing error", err);
+      setIsGeneratingAI(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -280,6 +329,31 @@ const ReportFound: React.FC = () => {
                         </Button>
                       </div>
                     )}
+
+                    {imagePreview && (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAutoFill}
+                          disabled={isGeneratingAI || !formData.image}
+                          className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 hover:text-purple-800 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800 transition-colors"
+                        >
+                          {isGeneratingAI ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Analyzing Image...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Auto-Fill with AI
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Item Name */}
@@ -395,13 +469,12 @@ const ReportFound: React.FC = () => {
                         <MessageSquare size={14} className="text-teal-500" />
                         Description & Details
                       </Label>
-                      <span className={`text-xs font-medium ${
-                        descriptionLength > MAX_DESCRIPTION_LENGTH
+                      <span className={`text-xs font-medium ${descriptionLength > MAX_DESCRIPTION_LENGTH
                           ? "text-red-600"
                           : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
-                          ? "text-orange-600"
-                          : "text-slate-400"
-                      }`}>
+                            ? "text-orange-600"
+                            : "text-slate-400"
+                        }`}>
                         {descriptionLength}/{MAX_DESCRIPTION_LENGTH}
                       </span>
                     </div>
@@ -412,13 +485,12 @@ const ReportFound: React.FC = () => {
                       onChange={handleChange}
                       required
                       placeholder="Describe specific details..."
-                      className={`min-h-[120px] bg-slate-50 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base ${
-                        descriptionLength > MAX_DESCRIPTION_LENGTH
+                      className={`min-h-[120px] bg-slate-50 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base ${descriptionLength > MAX_DESCRIPTION_LENGTH
                           ? "border-2 border-red-500"
                           : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
-                          ? "border-2 border-orange-300"
-                          : "border-slate-200"
-                      }`}
+                            ? "border-2 border-orange-300"
+                            : "border-slate-200"
+                        }`}
                     />
                     {error && (
                       <p className="text-sm text-red-600 font-medium">{error}</p>
