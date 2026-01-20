@@ -31,7 +31,8 @@ export default function AboutPage() {
                     </div>
                     <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
                         {/* Placeholder for illustration */}
-                        <div className="text-slate-400 font-medium">Broken Systems</div>
+                        {/*text color change*/}
+                        <div className="text-black dark:text-white font-medium">Broken Systems</div>
                     </div>
                 </section>
 
@@ -44,7 +45,7 @@ export default function AboutPage() {
                     <div className="space-y-4 order-1 md:order-2">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">The Rubix Solution</h2>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Rubix uses advanced **Vector Embeddings** and **Generative AI** to match lost items with found reports based on semantic similarity. It doesn't just look for keywords; it understands what your item *is*. Coupled with a secure verification system, we ensure that items are returned to their rightful owners safely.
+                            Rubix uses advanced <b>Vector Embeddings</b> and <b>Generative AI</b> to match lost items with found reports based on semantic similarity. It doesn't just look for keywords; it understands what your item is. Coupled with a secure verification system, we ensure that items are returned to their rightful owners safely.
                         </p>
                     </div>
                 </section>

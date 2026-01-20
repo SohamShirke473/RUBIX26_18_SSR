@@ -74,7 +74,15 @@ export const getMatchesForUser = query({
             })
         );
 
-        // Flatten and sort by score
-        return allMatches.flat().sort((a, b) => b.score - a.score);
+        // Flatten results
+        const flatMatches = allMatches.flat();
+
+        // Deduplicate by matchId
+        const uniqueMatches = Array.from(
+            new Map(flatMatches.map((m) => [m.matchId, m])).values()
+        );
+
+        // Sort by score
+        return uniqueMatches.sort((a, b) => b.score - a.score);
     },
 });
