@@ -2,7 +2,6 @@
 
 import { internalAction } from "./_generated/server";
 import { v } from "convex/values";
-import { sendMatchEmail } from "./email_utils"; // Move the raw node function to a utils file or keep here if simpler
 
 // We need to import the raw function or define it here if we want to extract it
 // Let's redefine the email logic inside the action for simplicity or import it.

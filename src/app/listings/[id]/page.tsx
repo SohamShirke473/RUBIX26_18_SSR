@@ -17,16 +17,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ListingChat from "@/components/ListingChat";
 import VerificationModal from "@/components/verification/VerificationModal";
+import ClaimApprovalList from "@/components/verification/ClaimApprovalList";
 
 export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
+    const isValidId = params.id && params.id.length > 5 && !params.id.includes("/");
     const listingId = params.id as Id<"listings">;
     const { user, isLoaded } = useUser();
 
     const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
-    const listing = useQuery(api.getListing.getListingById, { id: listingId });
-    const matches = useQuery(api.matchingHelpers.getMatchesForListing, { listingId });
+    const listing = useQuery(api.getListing.getListingById, isValidId ? { id: listingId } : "skip");
+    const matches = useQuery(api.matchingHelpers.getMatchesForListing, isValidId ? { listingId } : "skip");
 
     const confirmMatch = useMutation(api.matchingHelpers.confirmMatch);
     const rejectMatch = useMutation(api.matchingHelpers.rejectMatch);
@@ -130,6 +132,14 @@ export default function ListingDetailPage() {
                                         )}
                                     </div>
 
+                                    {/* Finder View: Approve Claims */}
+                                    {isOwner && listing.type === "found" && (
+                                        <div className="mb-6">
+                                            <ClaimApprovalList listingId={listingId} />
+                                        </div>
+                                    )}
+
+                                    {/* Claimant View: Request Verification */}
                                     {!isOwner && listing.type === "found" && ( // Only show on found items if not owner
                                         <div className="mb-4">
                                             <VerificationModal listingId={listingId} listingTitle={listing.title} />
@@ -174,15 +184,15 @@ export default function ListingDetailPage() {
                                 <h3 className="font-semibold text-lg">Details</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="flex items-center gap-2 text-sm">
-                                        <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                                        <MapPin className="h-4 w-4 text-primary shrink-0" />
                                         <span className="text-muted-foreground">{listing.locationName}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+                                        <Calendar className="h-4 w-4 text-primary shrink-0" />
                                         <span className="text-muted-foreground">{formattedDate}</span>
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap text-sm col-span-full">
-                                        <Tag className="h-4 w-4 text-primary flex-shrink-0" />
+                                        <Tag className="h-4 w-4 text-primary shrink-0" />
                                         {listing.categories.map((cat) => (
                                             <Badge key={cat} variant="outline" className="capitalize">
                                                 {cat.replace("_", " ")}
@@ -224,7 +234,7 @@ export default function ListingDetailPage() {
                                                     className="flex items-center gap-3 p-3 border rounded-xl hover:bg-muted/50 transition-colors"
                                                 >
                                                     {match.matchedListing?.imageUrl ? (
-                                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
                                                             <Image
                                                                 src={match.matchedListing.imageUrl}
                                                                 alt={match.matchedListing.title}
@@ -233,7 +243,7 @@ export default function ListingDetailPage() {
                                                             />
                                                         </div>
                                                     ) : (
-                                                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                                                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
                                                             <Tag className="h-6 w-6 text-muted-foreground" />
                                                         </div>
                                                     )}
@@ -265,7 +275,7 @@ export default function ListingDetailPage() {
                                                     </div>
 
                                                     {match.status === "suggested" && (
-                                                        <div className="flex gap-1.5 flex-shrink-0">
+                                                        <div className="flex gap-1.5 shrink-0">
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"

@@ -1,4 +1,3 @@
-"use node";
 
 const BAD_WORDS = [
     "damn", "hell", "crap", "stupid", "idiot", // Basic list, expandable

@@ -10,11 +10,15 @@
 
 import type * as admin from "../admin.js";
 import type * as conversations from "../conversations.js";
+import type * as email from "../email.js";
 import type * as getListing from "../getListing.js";
 import type * as matches from "../matches.js";
 import type * as matching from "../matching.js";
 import type * as matchingHelpers from "../matchingHelpers.js";
+import type * as moderation from "../moderation.js";
 import type * as report from "../report.js";
+import type * as verification from "../verification.js";
+import type * as verificationActions from "../verificationActions.js";
 
 import type {
   ApiFromModules,
@@ -25,11 +29,15 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   conversations: typeof conversations;
+  email: typeof email;
   getListing: typeof getListing;
   matches: typeof matches;
   matching: typeof matching;
   matchingHelpers: typeof matchingHelpers;
+  moderation: typeof moderation;
   report: typeof report;
+  verification: typeof verification;
+  verificationActions: typeof verificationActions;
 }>;
 
 /**

@@ -44,8 +44,8 @@ const Header = () => {
                   key={link.href}
                   href={link.href}
                   className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${pathname === link.href
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted "
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted "
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -94,8 +94,8 @@ const Header = () => {
                   key={link.href}
                   href={link.href}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${pathname === link.href
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -108,11 +108,10 @@ const Header = () => {
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${
-                  pathname === "/admin"
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${pathname === "/admin"
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <BarChart3 className="h-4 w-4" />

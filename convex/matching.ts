@@ -10,9 +10,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export const generateEmbedding = internalAction({
     args: { text: v.string() },
     handler: async (_, args): Promise<number[]> => {
-        const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.warn("GEMINI_API_KEY/GOOGLE_API_KEY not set. Matching will be degraded.");
+            console.warn("GEMINI_API_KEY not set. Matching will be degraded.");
             return new Array(768).fill(0); // Return zero vector to prevent crash
         }
 

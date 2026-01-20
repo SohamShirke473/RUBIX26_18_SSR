@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAction, useMutation } from "convex/react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,11 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck, AlertCircle, CheckCircle, BrainCircuit } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, CheckCircle, BrainCircuit, Lock, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VerificationModalProps {
@@ -22,160 +21,179 @@ interface VerificationModalProps {
     listingTitle: string;
 }
 
-type Question = {
-    question: string;
-    options: string[];
-    correctIndex: number;
-};
-
 export default function VerificationModal({ listingId, listingTitle }: VerificationModalProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [step, setStep] = useState<"idle" | "generating" | "questioning" | "verifying" | "success" | "failure">("idle");
-    const [questions, setQuestions] = useState<Question[]>([]);
+
+    // Fetch current claim status
+    const claim = useQuery(api.verification.getClaimStatus, { listingId });
+
+    // Mutations
+    const initiateClaim = useMutation(api.verification.initiateClaim);
+    const submitAnswers = useMutation(api.verification.submitVerificationAnswers);
+
+    // Local state for the quiz
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<{ question: string; answer: string; isCorrect: boolean }[]>([]);
+    const [answers, setAnswers] = useState<{ question: string; answerIndex: number }[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
-    const generateQuestions = useAction(api.verification.generateQuestions);
-    const submitClaim = useMutation(api.verification.submitVerificationClaim);
+    // Reset local state when dialog closes or claim changes
+    useEffect(() => {
+        if (!isOpen) {
+            // reset quiz state
+            setCurrentQuestionIndex(0);
+            setAnswers([]);
+            setError("");
+        }
+    }, [isOpen]);
 
-    const handleStart = async () => {
-        setStep("generating");
-        setError("");
+    const handleInitiate = async () => {
         try {
-            const result = await generateQuestions({ listingId });
-            setQuestions(result.questions);
-            setStep("questioning");
+            await initiateClaim({ listingId });
+            // The UI will update automatically via reactivity
         } catch (err) {
             console.error(err);
-            setError("Failed to generate questions. Please ensuring AI services are configured.");
-            setStep("idle");
+            setError("Failed to send request.");
         }
     };
 
     const handleAnswer = async (optionIndex: number) => {
-        const currentQ = questions[currentQuestionIndex];
+        if (!claim || !claim.generatedQuestions) return;
+
+        const currentQ = claim.generatedQuestions[currentQuestionIndex];
         const newAnswers = [
             ...answers,
             {
                 question: currentQ.question,
-                answer: currentQ.options[optionIndex],
-                isCorrect: optionIndex === currentQ.correctIndex,
+                answerIndex: optionIndex,
             },
         ];
         setAnswers(newAnswers);
 
-        if (currentQuestionIndex < questions.length - 1) {
+        if (currentQuestionIndex < claim.generatedQuestions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            // Finished
-            setStep("verifying");
-            const score = newAnswers.filter((a) => a.isCorrect).length;
-
+            // Submit
+            setIsSubmitting(true);
             try {
-                await submitClaim({
-                    listingId,
-                    answers: newAnswers.map((a) => ({ question: a.question, answer: a.answer })),
-                    score,
+                await submitAnswers({
+                    claimId: claim._id,
+                    answers: newAnswers,
                 });
-
-                if (score >= 2) { // 2 out of 3 pass
-                    setStep("success");
-                } else {
-                    setStep("failure");
-                }
+                // Status will change to approved/rejected, UI updates automatically
             } catch (err) {
                 console.error(err);
-                setError("Failed to submit claim.");
-                setStep("idle");
+                setError("Failed to submit answers.");
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
 
-    const reset = () => {
-        setIsOpen(false);
-        setTimeout(() => {
-            setStep("idle");
-            setQuestions([]);
-            setCurrentQuestionIndex(0);
-            setAnswers([]);
-            setError("");
-        }, 300);
-    };
+    // Render Logic based on Claim State
 
-    return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && reset()}>
-            <DialogTrigger asChild>
+    // 1. No Claim Found -> Show Request Button
+    if (claim === undefined) return null; // Loading
+
+    if (claim === null) {
+        return (
+            <div className="flex flex-col gap-2">
                 <Button
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-                    onClick={() => setIsOpen(true)}
+                    onClick={handleInitiate}
+                    className="bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white w-full"
                 >
                     <BrainCircuit className="w-4 h-4 mr-2" />
-                    Verify Ownership with AI
+                    Request AI Verification
                 </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-slate-950 text-slate-50 border-slate-800">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl">
-                        {step === "success" ? (
-                            <ShieldCheck className="w-6 h-6 text-green-500" />
-                        ) : (
+                <p className="text-xs text-muted-foreground">
+                    Request the finder to verify your ownership via AI-generated questions.
+                </p>
+                {error && <p className="text-xs text-red-500">{error}</p>}
+            </div>
+        );
+    }
+
+    // 2. Pending -> Show Waiting State
+    if (claim.status === "pending") {
+        return (
+            <div className="p-4 rounded-xl border bg-muted/50 text-center space-y-2">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-purple-500" />
+                <h3 className="font-medium">Request Sent</h3>
+                <p className="text-sm text-muted-foreground">
+                    Waiting for the finder to approve your verification request.
+                </p>
+            </div>
+        );
+    }
+
+    // 2.5 Generating -> Show AI Loading State
+    if (claim.status === "generating") {
+        return (
+            <div className="p-4 rounded-xl border border-purple-200 bg-purple-50 dark:bg-purple-900/10 text-center space-y-2">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-purple-600" />
+                <h3 className="font-medium text-purple-900 dark:text-purple-300">Generating Questions</h3>
+                <p className="text-sm text-purple-800 dark:text-purple-400">
+                    The finder has approved your request. AI is now generating your security questions...
+                </p>
+            </div>
+        );
+    }
+
+    // 3. Approved -> Show Success
+    if (claim.status === "approved") {
+        return (
+            <div className="p-4 rounded-xl border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-900 text-center space-y-2">
+                <CheckCircle className="w-8 h-8 mx-auto text-green-600 dark:text-green-400" />
+                <h3 className="font-medium text-green-900 dark:text-green-300">Verification Successful!</h3>
+                <p className="text-sm text-green-800 dark:text-green-400">
+                    You have verified ownership. The finder has been notified to share contact details.
+                </p>
+                {/* Potentially show contact info here if available */}
+            </div>
+        );
+    }
+
+    // 4. Rejected/Failed -> Show Failure
+    if (claim.status === "rejected" || claim.status === "failed") {
+        return (
+            <div className="p-4 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900 text-center space-y-2">
+                <AlertCircle className="w-8 h-8 mx-auto text-red-600 dark:text-red-400" />
+                <h3 className="font-medium text-red-900 dark:text-red-300">Verification Failed</h3>
+                <p className="text-sm text-red-800 dark:text-red-400">
+                    Your answers were incorrect or the request was rejected.
+                </p>
+            </div>
+        );
+    }
+
+    // 5. Questions Generated -> Show Questions Modal Trigger & Content
+    // This is the only state where the Dialog is fully active for interaction.
+    if (claim.status === "questions_generated" && claim.generatedQuestions) {
+        return (
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                    <div className="p-4 rounded-xl border border-purple-200 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-900 text-center space-y-3 cursor-pointer hover:bg-purple-100 transition-colors" onClick={() => setIsOpen(true)}>
+                        <BrainCircuit className="w-8 h-8 mx-auto text-purple-600 dark:text-purple-400 animate-pulse" />
+                        <div>
+                            <h3 className="font-medium text-purple-900 dark:text-purple-300">Verification Ready</h3>
+                            <p className="text-xs text-purple-800 dark:text-purple-400">Click to answer security questions generated by AI.</p>
+                        </div>
+                        <Button size="sm" className="bg-purple-600 text-white w-full">Start Verification</Button>
+                    </div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] bg-slate-950 text-slate-50 border-slate-800">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-xl">
                             <BrainCircuit className="w-6 h-6 text-purple-400" />
-                        )}
-                        Item Verification
-                    </DialogTitle>
-                    <DialogDescription className="text-slate-400">
-                        {step === "idle" && "Prove this item is yours by answering specific details only the owner would know."}
-                        {step === "generating" && "AI is analyzing the item details to generate security questions..."}
-                        {step === "questioning" && `Question ${currentQuestionIndex + 1} of ${questions.length}`}
-                        {step === "verifying" && "Verifying your answers..."}
-                        {step === "success" && "Verification Successful!"}
-                        {step === "failure" && "Verification Failed."}
-                    </DialogDescription>
-                </DialogHeader>
+                            Item Verification
+                        </DialogTitle>
+                        <DialogDescription className="text-slate-400">
+                            Question {currentQuestionIndex + 1} of {claim.generatedQuestions.length}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <div className="py-6">
-                    <AnimatePresence mode="wait">
-                        {step === "idle" && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="space-y-4"
-                            >
-                                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-300 leading-relaxed">
-                                    <p>
-                                        Our AI will generate <strong>3 unique questions</strong> based on the hidden and visible details of <strong>"{listingTitle}"</strong>.
-                                    </p>
-                                    <p className="mt-2 text-slate-400 text-xs">
-                                        * You need to answer at least 2 correctly to claim this item.
-                                    </p>
-                                </div>
-                                {error && (
-                                    <div className="p-3 rounded-lg bg-red-900/30 border border-red-900/50 text-red-200 text-sm flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4" />
-                                        {error}
-                                    </div>
-                                )}
-                                <Button onClick={handleStart} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                                    Start Verification
-                                </Button>
-                            </motion.div>
-                        )}
-
-                        {step === "generating" && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="flex flex-col items-center justify-center py-8"
-                            >
-                                <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                                <p className="text-slate-400 animate-pulse">Generating questions...</p>
-                            </motion.div>
-                        )}
-
-                        {step === "questioning" && questions.length > 0 && (
+                    <div className="py-6">
+                        <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentQuestionIndex}
                                 initial={{ opacity: 0, x: 20 }}
@@ -184,13 +202,14 @@ export default function VerificationModal({ listingId, listingTitle }: Verificat
                                 className="space-y-6"
                             >
                                 <h3 className="text-lg font-medium text-white">
-                                    {questions[currentQuestionIndex].question}
+                                    {claim.generatedQuestions[currentQuestionIndex].question}
                                 </h3>
                                 <div className="grid grid-cols-1 gap-3">
-                                    {questions[currentQuestionIndex].options.map((option, idx) => (
+                                    {claim.generatedQuestions[currentQuestionIndex].options.map((option, idx) => (
                                         <Button
                                             key={idx}
                                             variant="outline"
+                                            disabled={isSubmitting}
                                             className="justify-start h-auto py-3 px-4 text-left whitespace-normal border-slate-700 hover:bg-slate-800 hover:text-white text-slate-300"
                                             onClick={() => handleAnswer(idx)}
                                         >
@@ -202,52 +221,17 @@ export default function VerificationModal({ listingId, listingTitle }: Verificat
                                     ))}
                                 </div>
                             </motion.div>
+                        </AnimatePresence>
+                        {isSubmitting && (
+                            <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center rounded-lg">
+                                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                            </div>
                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
 
-                        {step === "success" && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex flex-col items-center text-center space-y-4"
-                            >
-                                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                                    <CheckCircle className="w-8 h-8 text-green-500" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Ownership Verified</h3>
-                                    <p className="text-slate-400">
-                                        You have successfully verified that this item is yours. The finder has been notified.
-                                    </p>
-                                </div>
-                                <Button onClick={reset} className="mt-4 w-full bg-green-600 hover:bg-green-700">
-                                    Continue to Chat
-                                </Button>
-                            </motion.div>
-                        )}
-
-                        {step === "failure" && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex flex-col items-center text-center space-y-4"
-                            >
-                                <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-                                    <AlertCircle className="w-8 h-8 text-red-500" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Verification Failed</h3>
-                                    <p className="text-slate-400">
-                                        Your answers didn't match the item's details closely enough.
-                                    </p>
-                                </div>
-                                <Button onClick={reset} variant="outline" className="mt-4 w-full border-slate-700 hover:bg-slate-800">
-                                    Close
-                                </Button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </DialogContent>
-        </Dialog>
-    );
+    return null;
 }

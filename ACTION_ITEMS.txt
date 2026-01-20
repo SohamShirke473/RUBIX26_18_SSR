@@ -7,7 +7,7 @@ Ensure your `.env.local` file has the following keys:
 - `NEXT_PUBLIC_CONVEX_URL`: (From your Convex dashboard)
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: (From Clerk)
 - `CLERK_SECRET_KEY`: (From Clerk)
-- `GOOGLE_API_KEY`: Required for Gemini AI (Embeddings & Verification).
+- `GEMINI_API_KEY`: Required for Gemini AI (Embeddings & Verification).
 - `RESEND_API_KEY`: Required for Email Notifications.
 
 ## 2. Running the App

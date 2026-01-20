@@ -46,6 +46,7 @@ export const getAllListings = query({
             const page = await Promise.all(
                 pageItems.map(async (listing) => ({
                     ...listing,
+                    description: undefined, // Hide description in public list
                     imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
@@ -67,6 +68,7 @@ export const getAllListings = query({
             const page = await Promise.all(
                 result.page.map(async (listing) => ({
                     ...listing,
+                    description: undefined, // Hide description in public list
                     imageUrl:
                         listing.images?.length
                             ? await ctx.storage.getUrl(listing.images[0])
@@ -124,6 +126,7 @@ export const searchListings = query({
             const page = await Promise.all(
                 pageItems.map(async (listing) => ({
                     ...listing,
+                    description: undefined, // Hide description
                     imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
@@ -143,6 +146,7 @@ export const searchListings = query({
             const page = await Promise.all(
                 result.page.map(async (listing) => ({
                     ...listing,
+                    description: undefined, // Hide description
                     imageUrl:
                         listing.images?.length
                             ? await ctx.storage.getUrl(listing.images[0])
@@ -186,12 +190,21 @@ export const getListingById = query({
             (listing.images || []).map((imageId) => ctx.storage.getUrl(imageId))
         );
 
-        return {
+        // Check if current user is the owner
+        const user = await ctx.auth.getUserIdentity();
+        const isOwner = user && user.subject === listing.clerkUserId;
+
+        // Hide description for non-owners to prevent cheating
+        // But allow search to work (handled by search index)
+        const privacySafeListing = {
             ...listing,
+            description: isOwner ? listing.description : undefined, // Or a placeholder
             imageUrls: imageUrls.filter((url): url is string => url !== null),
         };
+
+        return privacySafeListing;
     },
-})
+});
 
 export const getListingByUser = query({
     args: { clerkUserId: v.string() },

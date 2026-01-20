@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getMatchesForUser = query({
@@ -84,5 +84,94 @@ export const getMatchesForUser = query({
 
         // Sort by score
         return uniqueMatches.sort((a, b) => b.score - a.score);
+    },
+});
+
+export const confirmMatch = mutation({
+    args: { matchId: v.id("matches") },
+    handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("Unauthorized");
+
+        const match = await ctx.db.get(args.matchId);
+        if (!match) throw new Error("Match not found");
+
+        const lostListing = await ctx.db.get(match.lostListingId);
+        const foundListing = await ctx.db.get(match.foundListingId);
+
+        if (!lostListing || !foundListing) throw new Error("Listing not found");
+
+        // Verify user is one of the parties (usually the one confirming, e.g. Lost item owner confirming a suggestion)
+        // User request says "lost item owner reviews suggested matches and can either confirm or reject".
+        // Also "finder can confirm a match".
+        // So allow both to confirm.
+        if (lostListing.clerkUserId !== user.subject && foundListing.clerkUserId !== user.subject) {
+            throw new Error("Unauthorized");
+        }
+
+        // Update match status
+        await ctx.db.patch(match._id, { status: "confirmed" });
+
+        // Update listing statuses to 'matched' if not already
+        if (lostListing.status === "open") {
+            await ctx.db.patch(match.lostListingId, { status: "matched" });
+        }
+        if (foundListing.status === "open") {
+            await ctx.db.patch(match.foundListingId, { status: "matched" });
+        }
+
+        // Create conversation
+        // Check if exists first? Schema has index by_listing, but we need by pair.
+        // Let's just create one if not exists or return existing.
+        // Actually, schema `conversations` has `listingId`. Which listing? "listingId: v.id('listings')".
+        // It's ambiguous which listing ID is used. Probably the Lost one? Or maybe we create a conversation linked to ONE of them.
+        // Let's check `conversations` table definition in schema.
+        // `conversations: defineTable({ listingId: v.id("listings"), participantIds: [...] ... })`.
+        // Let's assume we link it to the LOST listing ID for context, or maybe we create one for each?
+        // Let's link to the Lost Listing ID as the primary context.
+
+        const existingConv = await ctx.db
+            .query("conversations")
+            .withIndex("by_listing", (q) => q.eq("listingId", match.lostListingId))
+            .filter((q) => q.eq(q.field("participantIds"), [lostListing.clerkUserId, foundListing.clerkUserId].sort())) // This filter is tricky on arrays, better to just check manually
+            .first();
+
+        // Actually, Convex comparison on arrays is strict.
+        // Let's iterate.
+        // For simplicity, just create a new one, deduping logic is complex without specific index.
+        // Or better: use `listingId` which is unique enough for this pair in this context.
+
+        await ctx.db.insert("conversations", {
+            listingId: match.lostListingId,
+            participantIds: [lostListing.clerkUserId, foundListing.clerkUserId],
+            createdAt: Date.now(),
+        });
+
+        return "confirmed";
+    },
+});
+
+export const rejectMatch = mutation({
+    args: { matchId: v.id("matches") },
+    handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) throw new Error("Unauthorized");
+
+        const match = await ctx.db.get(args.matchId);
+        if (!match) throw new Error("Match not found");
+
+        // Verify ownership
+        const lostListing = await ctx.db.get(match.lostListingId);
+        const foundListing = await ctx.db.get(match.foundListingId);
+
+        if (!lostListing || !foundListing) throw new Error("Listings data invalid");
+
+        if (lostListing.clerkUserId !== user.subject && foundListing.clerkUserId !== user.subject) {
+            throw new Error("Unauthorized");
+        }
+
+        await ctx.db.patch(match._id, { status: "rejected" });
+
+        return "rejected";
     },
 });

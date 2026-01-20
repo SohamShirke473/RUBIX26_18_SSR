@@ -29,8 +29,9 @@ const EditListingPage = () => {
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
+  const isValidId = params.id && params.id.length > 5 && !params.id.includes("/");
   const listingId = params.id as Id<"listings">;
-  const listing = useQuery(api.getListing.getListingById, { id: listingId });
+  const listing = useQuery(api.getListing.getListingById, isValidId ? { id: listingId } : "skip");
   const updateListing = useMutation(api.report.updateListing);
 
   const [title, setTitle] = useState("");
@@ -81,7 +82,7 @@ const EditListingPage = () => {
     return (
       <div className="container max-w-2xl py-20 px-4">
         <div className="border-2 border-orange-500/50 dark:border-orange-600/50 bg-orange-100/20 dark:bg-orange-950/30 rounded-xl p-8 text-center flex items-start gap-4">
-          <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-1" />
+          <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400 shrink-0 mt-1" />
           <div className="text-left">
             <p className="text-orange-900 dark:text-orange-200 font-semibold">Access Denied</p>
             <p className="text-orange-800 dark:text-orange-300 text-sm mt-1">You can only edit your own listings.</p>
@@ -243,13 +244,12 @@ const EditListingPage = () => {
                     Description
                   </Label>
                   <span
-                    className={`text-xs font-medium ${
-                      descriptionLength > MAX_DESCRIPTION_LENGTH
-                        ? "text-red-600"
-                        : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                    className={`text-xs font-medium ${descriptionLength > MAX_DESCRIPTION_LENGTH
+                      ? "text-red-600"
+                      : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
                         ? "text-orange-600"
                         : "text-slate-400"
-                    }`}
+                      }`}
                   >
                     {descriptionLength}/{MAX_DESCRIPTION_LENGTH}
                   </span>
@@ -259,13 +259,12 @@ const EditListingPage = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe the item in detail..."
-                  className={`min-h-[150px] ${
-                    descriptionLength > MAX_DESCRIPTION_LENGTH
-                      ? "border-2 border-red-500"
-                      : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                  className={`min-h-[150px] ${descriptionLength > MAX_DESCRIPTION_LENGTH
+                    ? "border-2 border-red-500"
+                    : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
                       ? "border-2 border-orange-300"
                       : ""
-                  }`}
+                    }`}
                   required
                 />
               </div>

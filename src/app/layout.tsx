@@ -42,7 +42,6 @@ export default function RootLayout({
             <ClerkProvider>
               <ConvexClientProvider>
                 <Navbar />
-                <LanguageSwitcher />
                 {children}
                 <Footer />
               </ConvexClientProvider>
