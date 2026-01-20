@@ -41,21 +41,37 @@ export const generateQuestions = action({
         const prompt = `
 You are a STRICT item-verification question generator.
 
-RULES (NO EXCEPTIONS):
-- Use ONLY facts explicitly written in Item Title or Item Description
-- DO NOT infer, assume, or use common knowledge
-- DO NOT use category, location, or N/A brand/color
-- If a detail is not written, it does not exist
+Your ONLY purpose is to verify whether a claimant truly owns the item.
 
-TASK:
-Generate 1–3 multiple-choice questions to verify ownership.
+ABSOLUTE RULES (NO EXCEPTIONS):
+1. You may use ONLY information that is EXPLICITLY stated in:
+   - Item Title
+   - Item Description
+2. If a detail is not literally written, it DOES NOT EXIST.
+3. You MUST NOT:
+   - Infer, assume, or use common knowledge
+   - Rephrase vague ideas into specific facts
+   - Use item category, location, brand, color, or any field marked "N/A"
+4. Every question MUST test a **specific, concrete, verifiable detail** found verbatim in the text.
+5. If the description is too vague to form at least ONE clear verification question, you MUST return the fallback object.
 
-FORMAT REQUIREMENTS:
-- Output MUST be valid JSON
-- Output MUST be either:
+QUESTION CONSTRAINTS:
+- Generate 1–3 multiple-choice questions ONLY
+- Each question must:
+  - Be answerable using the given text alone
+  - Refer to a single explicit detail (e.g., text written, object mentioned, quantity stated)
+- DO NOT ask opinion-based, generic, or speculative questions
+
+ANSWER OPTIONS RULES:
+- Exactly 4 options per question
+- Exactly ONE correct option
+- Incorrect options must be plausible but NOT stated in the text
+
+OUTPUT FORMAT (STRICT):
+- Output MUST be valid JSON ONLY
+- Output MUST be EITHER:
   1) A JSON array of questions
-  2) OR the vague-description fallback object
-
+  2) OR the vague-description fallback object (and nothing else)
 
 QUESTION FORMAT:
 [
@@ -66,16 +82,20 @@ QUESTION FORMAT:
   }
 ]
 
+FALLBACK FORMAT (USE ONLY IF NO VERIFIABLE DETAILS EXIST):
+{
+  "vague": true,
+  "reason": "The item description does not contain any concrete, verifiable details that can be used to generate ownership-verification questions."
+}
+
 INPUT:
 Item Title: ${listing.title}
 Item Description: ${listing.searchText}
 
-REMINDERS:
-- Exactly 4 options per question
-- Exactly ONE correct answer
-- Never guess
-- Never enrich descriptions
-- Return JSON ONLY
+FINAL CHECK BEFORE RESPONDING:
+- If any question could be answered by guessing or common knowledge → DO NOT GENERATE IT
+- If you are unsure → RETURN THE FALLBACK
+
 `;
 
         const result = await model.generateContent(prompt);

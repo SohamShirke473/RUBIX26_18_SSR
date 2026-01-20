@@ -34,7 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import LocationPicker from "@/components/LocationPicker";
+import dynamic from "next/dynamic";
+const LocationPicker = dynamic(() => import("@/components/LocationPicker"), { ssr: false });
 
 /* ---------- Types ---------- */
 

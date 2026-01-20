@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select";
 
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
-import LocationPicker from "@/components/LocationPicker";
+import dynamic from "next/dynamic";
+const LocationPicker = dynamic(() => import("@/components/LocationPicker"), { ssr: false });
 
 type ItemCategoryType = "wallet" | "phone" | "keys" | "bag" | "documents" | "electronics" | "jewelry" | "clothing" | "id_card" | "cash" | "other";
 

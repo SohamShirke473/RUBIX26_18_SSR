@@ -130,4 +130,45 @@ export default defineSchema({
         createdAt: v.number(),
         reviewedAt: v.optional(v.number()),
     }).index("by_listing", ["listingId"]),
+
+    complaints: defineTable({
+        title: v.string(),
+        description: v.string(),
+        category: v.union(
+            v.literal("abuse"),
+            v.literal("spam"),
+            v.literal("inappropriate_content"),
+            v.literal("harassment"),
+            v.literal("other")
+        ),
+
+        // User who filed the complaint
+        clerkUserId: v.string(),
+
+        // Optional reference to the listing being reported
+        listingId: v.optional(v.id("listings")),
+
+        // Evidence files (screenshots, etc.)
+        evidence: v.array(v.id("_storage")),
+
+        // Complaint status
+        status: v.union(
+            v.literal("open"),
+            v.literal("in-review"),
+            v.literal("resolved"),
+            v.literal("closed")
+        ),
+
+        // Admin moderation
+        adminNotes: v.optional(v.string()),
+        reviewedBy: v.optional(v.string()), // Clerk user ID of admin
+
+        createdAt: v.number(),
+        updatedAt: v.number(),
+        reviewedAt: v.optional(v.number()),
+    })
+        .index("by_user", ["clerkUserId"])
+        .index("by_listing", ["listingId"])
+        .index("by_status", ["status"])
+        .index("by_category", ["category"]),
 });

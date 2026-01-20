@@ -12,10 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-import { ArrowLeft, Loader2, AlertCircle, Trash2, CheckCircle2, BarChart3, MessageSquare } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Trash2, CheckCircle2, BarChart3, MessageSquare, Flag } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Id } from "../../../convex/_generated/dataModel";
+import { ComplaintDetailsDialog } from "@/components/admin/ComplaintDetailsDialog";
 
 const MessageViewer = ({ conversationId }: { conversationId: Id<"conversations"> }) => {
   const messages = useQuery(api.admin.getMessagesForAdmin, { conversationId });
@@ -68,9 +69,13 @@ const AdminDashboard = () => {
   const listings = useQuery(api.admin.getAllListingsForAdmin, isAdmin ? {} : "skip");
   const stats = useQuery(api.admin.getAdminStats, isAdmin ? {} : "skip");
   const conversations = useQuery(api.admin.getAllConversationsForAdmin, isAdmin ? {} : "skip");
+  const complaintStats = useQuery(api.admin.getComplaintStats, isAdmin ? {} : "skip");
+  const complaints = useQuery(api.admin.getAllComplaints, isAdmin ? {} : "skip");
 
   const resolveListing = useMutation(api.admin.resolveListing);
   const deleteListing = useMutation(api.admin.deleteListing);
+
+  const [selectedComplaintId, setSelectedComplaintId] = useState<Id<"complaints"> | null>(null);
 
   // Loading state
   const isLoading = isAdmin === undefined || (isAdmin && (listings === undefined || stats === undefined || conversations === undefined));
@@ -210,6 +215,43 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Complaints Statistics */}
+        {stats && (
+          <Card className="mb-10">
+            <CardHeader>
+              <CardTitle>Complaints Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Total</p>
+                  <p className="text-2xl font-bold">{complaintStats?.totalComplaints || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Open</p>
+                  <p className="text-2xl font-bold text-blue-600">{complaintStats?.openComplaints || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">In Review</p>
+                  <p className="text-2xl font-bold text-yellow-600">{complaintStats?.inReviewComplaints || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Resolved</p>
+                  <p className="text-2xl font-bold text-green-600">{complaintStats?.resolvedComplaints || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Abuse</p>
+                  <p className="text-2xl font-bold text-red-600">{complaintStats?.abuseComplaints || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Spam</p>
+                  <p className="text-2xl font-bold text-orange-600">{complaintStats?.spamComplaints || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Conversations Table */}
         <Card className="mb-10">
           <CardHeader>
@@ -262,6 +304,93 @@ const AdminDashboard = () => {
                     <tr>
                       <td colSpan={4} className="py-8 px-4 text-center text-muted-foreground">
                         No conversations found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Complaints Table */}
+        <Card className="mb-10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Flag className="h-5 w-5" />
+              All Complaints
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Title</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Category</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Related Listing</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Date</th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complaints && complaints.length > 0 ? (
+                    complaints.map((complaint) => (
+                      <tr key={complaint._id} className="border-b dark:border-slate-700 hover:bg-muted/50 dark:hover:bg-slate-800/50 transition">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-sm truncate max-w-xs">
+                            {complaint.title}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm capitalize">
+                          {complaint.category.replace("_", " ")}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge
+                            className={`${complaint.status === "open"
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                              : complaint.status === "in-review"
+                                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                : complaint.status === "resolved"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                              }`}
+                          >
+                            {complaint.status}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {complaint.listing ? (
+                            <Link
+                              href={`/listings/${complaint.listing._id}`}
+                              className="text-teal-600 dark:text-teal-400 hover:underline truncate max-w-xs block"
+                            >
+                              {complaint.listing.title}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
+                          {new Date(complaint.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => setSelectedComplaintId(complaint._id)}
+                          >
+                            View Details
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-8 px-4 text-center text-muted-foreground">
+                        No complaints found
                       </td>
                     </tr>
                   )}
@@ -392,6 +521,15 @@ const AdminDashboard = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Complaint Details Dialog */}
+      {selectedComplaintId && (
+        <ComplaintDetailsDialog
+          complaintId={selectedComplaintId}
+          open={selectedComplaintId !== null}
+          onOpenChange={(open) => !open && setSelectedComplaintId(null)}
+        />
+      )}
     </div>
   );
 };

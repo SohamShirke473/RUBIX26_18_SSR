@@ -226,6 +226,30 @@ export const getListingByUser = query({
     },
 })
 
+// Get current user's listings (for complaint form dropdown)
+export const getUserListings = query({
+    args: {},
+    handler: async (ctx) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) return [];
+
+        const listings = await ctx.db
+            .query("listings")
+            .withIndex("by_user", (q) => q.eq("clerkUserId", user.subject))
+            .collect();
+
+        return await Promise.all(
+            listings.map(async (listing) => ({
+                ...listing,
+                imageUrl:
+                    listing.images?.length
+                        ? await ctx.storage.getUrl(listing.images[0])
+                        : null,
+            }))
+        );
+    },
+})
+
 // export const getOpenListingsByCategory = query({
 //     args: {
 //         category: ItemCategory,

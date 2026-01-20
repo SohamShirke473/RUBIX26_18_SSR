@@ -5,6 +5,7 @@ import ConvexClientProvider from "../Provider/ConvexClientProvider";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 import Navbar from "@/components/Navbar";
@@ -44,6 +45,7 @@ export default function RootLayout({
                 <Navbar />
                 {children}
                 <Footer />
+                <Toaster />
               </ConvexClientProvider>
             </ClerkProvider>
           </ThemeProvider>

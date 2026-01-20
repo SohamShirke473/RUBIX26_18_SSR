@@ -2,6 +2,7 @@
 
 import MyListings from "@/components/dashboard/MyListings";
 import MatchSuggestions from "@/components/dashboard/MatchSuggestions";
+import UserComplaints from "@/components/dashboard/UserComplaints";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { PlusCircle, Search } from "lucide-react";
@@ -51,6 +52,11 @@ export default function Dashboard() {
                                 <PlusCircle className="mr-2 h-4 w-4" /> Report Found
                             </Button>
                         </Link>
+                        <Link href="/report-complaint">
+                            <Button variant="outline" className="border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:hover:bg-red-950">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Report Complaint
+                            </Button>
+                        </Link>
                     </div>
                 </div>
 
@@ -62,6 +68,11 @@ export default function Dashboard() {
                             <Link href="/listings" className="text-sm text-teal-600 font-medium hover:underline">View All</Link>
                         </div>
                         <MyListings />
+
+                        {/* Complaints Section */}
+                        <div className="mt-8">
+                            <UserComplaints />
+                        </div>
                     </div>
 
                     {/* Sidebar (30%) */}

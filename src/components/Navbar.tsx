@@ -7,7 +7,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, MapPin, Package, Search, BarChart3, Home, PackageX, PackageXIcon, PackagePlus } from "lucide-react";
+import { Menu, X, MapPin, Package, Search, BarChart3, Home, PackageX, PackageXIcon, PackagePlus, AlertCircle } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
 const Header = () => {
@@ -20,6 +20,7 @@ const Header = () => {
     { href: "/listings", label: "Browse Items", icon: Search },
     { href: "/report-lost", label: "Report Lost", icon: PackageXIcon },
     { href: "/report-found", label: "Report Found", icon: PackagePlus },
+    { href: "/report-complaint", label: "Report Complaint", icon: AlertCircle },
   ];
 
   return (
