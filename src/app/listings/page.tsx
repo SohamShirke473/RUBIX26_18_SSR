@@ -1,12 +1,6 @@
 "use client"
 
-import Link from "next/link";
-import Image from "next/image";
-
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-
-import { MapPin, Clock } from "lucide-react";
+import { ItemCard } from "@/components/ItemCard";
 
 import { usePaginatedQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -20,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { X, Search } from "lucide-react";
+import { X, Search, Filter } from "lucide-react";
 
 
 export default function ListingsPage() {
@@ -56,108 +50,95 @@ export default function ListingsPage() {
           <h1 className="text-4xl font-display font-bold mb-8">
             Recent Lost & Found Items
           </h1>
-          <div className="flex flex-col lg:flex-row gap-4 mb-8 items-start lg:items-center justify-between">
-            {/* Search Input */}
-            <div className="relative flex-1 w-full lg:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search items by title or description..."
-                className="pl-10 h-10 w-full rounded-lg"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition"
-                >
-                  <X className="h-3 w-3 text-muted-foreground" />
-                </button>
-              )}
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-start sm:items-center">
-              {/* Type Filter */}
-              <div className="flex items-center p-1 bg-muted rounded-lg border border-border">
-                {(["all", "lost", "found"] as FilterType[]).map((type) => (
+          <div className="mb-8 rounded-2xl border border-slate-200/80 dark:border-slate-800/70 bg-gradient-to-r from-teal-50 to-blue-50 dark:from-slate-900 dark:to-slate-950 shadow-sm">
+            <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="relative flex-1 min-w-[220px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search items by title or description..."
+                  className="pl-10 h-10 w-full rounded-lg bg-white/80 dark:bg-slate-900/70"
+                />
+                {searchQuery && (
                   <button
-                    key={type}
-                    onClick={() => setFilterType(type)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-md text-sm font-medium transition capitalize",
-                      filterType === type
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition"
                   >
-                    {type}
+                    <X className="h-3 w-3 text-muted-foreground" />
                   </button>
-                ))}
+                )}
               </div>
 
-              {/* Category Filter - Dropdown */}
-              <Select
-                value={selectedCategory || "all"}
-                onValueChange={(val) => setSelectedCategory(val === "all" ? null : (val as ItemCategoryType))}
-              >
-                <SelectTrigger className="w-[180px] capitalize">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="capitalize">
-                      {cat.replace("_", " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+                <button
+                  onClick={() => setFilterType("all")}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                    filterType === "all"
+                      ? "bg-white text-foreground shadow-sm border-slate-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-700"
+                      : "bg-white/70 text-muted-foreground hover:text-foreground border-slate-200 dark:bg-slate-900/70 dark:text-slate-400 dark:border-slate-800"
+                  )}
+                >
+                  All items
+                </button>
+                <button
+                  onClick={() => setFilterType("lost")}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                    filterType === "lost"
+                      ? "bg-white text-foreground shadow-sm border-slate-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-700"
+                      : "bg-white/70 text-muted-foreground hover:text-foreground border-slate-200 dark:bg-slate-900/70 dark:text-slate-400 dark:border-slate-800"
+                  )}
+                >
+                  Lost
+                </button>
+                <button
+                  onClick={() => setFilterType("found")}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                    filterType === "found"
+                      ? "bg-white text-foreground shadow-sm border-slate-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-700"
+                      : "bg-white/70 text-muted-foreground hover:text-foreground border-slate-200 dark:bg-slate-900/70 dark:text-slate-400 dark:border-slate-800"
+                  )}
+                >
+                  Found
+                </button>
+
+                <Select
+                  value={selectedCategory || "all"}
+                  onValueChange={(val) => setSelectedCategory(val === "all" ? null : (val as ItemCategoryType))}
+                >
+                  <SelectTrigger className="relative w-[180px] pl-10 bg-white/80 dark:bg-slate-900/70">
+                    <Filter className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Filter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="capitalize">
+                        {cat.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {results?.map((item) => (
-              <Link key={item._id} href={`/listings/${item._id}`} className="group">
-                <Card className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 hover:shadow-md transition h-full flex flex-col">
-                  <div className="aspect-[4/3] overflow-hidden bg-muted relative">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="p-4 flex flex-col flex-1">
-                    <div className="flex gap-2 mb-2">
-                      <Badge variant={item.type === "lost" ? "destructive" : "default"} >
-                        {item.type}
-                      </Badge>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground capitalize">{item.categories[0]}</p>
-                    <h3 className="font-semibold text-sm mb-3 line-clamp-1">{item.title}</h3>
-
-                    <div className="flex flex-col gap-1 text-xs text-muted-foreground mt-auto">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span className="line-clamp-1">{item.locationName}</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(item.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <ItemCard
+                key={item._id}
+                id={item._id}
+                type={item.type}
+                title={item.title}
+                category={item.categories[0]}
+                location={item.locationName}
+                date={item.createdAt}
+                imageUrl={item.imageUrl || undefined}
+              />
             ))}
           </div>
 

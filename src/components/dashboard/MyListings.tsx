@@ -4,11 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Clock } from "lucide-react";
+import { ItemCard } from "@/components/ItemCard";
 import { cn } from "@/lib/utils";
 
 export default function MyListings() {
@@ -64,54 +60,18 @@ export default function MyListings() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredListings.map((item) => (
-                        <Link key={item._id} href={`/listings/${item._id}`} className="group">
-                            <Card className="overflow-hidden rounded-2xl border border-border dark:border-slate-700 dark:bg-slate-800 hover:shadow-md transition h-full flex flex-col">
-                                <div className="aspect-4/3 overflow-hidden bg-muted relative">
-                                    {item.imageUrl ? (
-                                        <Image
-                                            src={item.imageUrl}
-                                            alt={item.title}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition"
-                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground dark:text-slate-400">
-                                            No Image
-                                        </div>
-                                    )}
-                                </div>
-
-                                <CardContent className="p-4 flex flex-col flex-1">
-                                    <div className="flex gap-2 mb-2">
-                                        <Badge variant={item.type === "lost" ? "destructive" : "default"} >
-                                            {item.type}
-                                        </Badge>
-                                        <Badge variant="outline" className={cn(
-                                            item.status === "open" ? "text-green-600 dark:text-green-400 border-green-200 dark:border-green-800" :
-                                                item.status === "matched" ? "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" :
-                                                    "text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800"
-                                        )}>
-                                            {item.status}
-                                        </Badge>
-                                    </div>
-
-                                    <p className="text-xs text-muted-foreground capitalize">{item.categories[0]}</p>
-                                    <h3 className="font-semibold text-sm mb-3 line-clamp-1">{item.title}</h3>
-
-                                    <div className="flex flex-col gap-1 text-xs text-muted-foreground dark:text-slate-400 mt-auto">
-                                        <span className="flex items-center gap-1">
-                                            <MapPin className="h-3 w-3" />
-                                            <span className="line-clamp-1">{item.locationName}</span>
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Clock className="h-3 w-3" />
-                                            {new Date(item.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
+                        <ItemCard
+                            key={item._id}
+                            id={item._id}
+                            type={item.type}
+                            title={item.title}
+                            category={item.categories[0]}
+                            location={item.locationName}
+                            date={item.createdAt}
+                            imageUrl={item.imageUrl || undefined}
+                            status={item.status}
+                            showStatus={true}
+                        />
                     ))}
                 </div>
             )}
