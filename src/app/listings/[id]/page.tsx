@@ -4,17 +4,14 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X, ArrowLeft, Send, Edit2 } from "lucide-react";
+import { Loader2, MapPin, Calendar, Tag, Sparkles, Check, X, ArrowLeft, Send, Edit2, Lock } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import ListingChat from "@/components/ListingChat";
 import VerificationModal from "@/components/verification/VerificationModal";
 import ClaimApprovalList from "@/components/verification/ClaimApprovalList";
@@ -174,7 +171,16 @@ export default function ListingDetailPage() {
                             <div className="space-y-3">
                                 <h3 className="font-semibold text-lg">Description</h3>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    {listing.description}
+                                    {listing.description ? (
+                                        listing.description
+                                    ) : listing.type === "found" ? (
+                                        <span className="flex items-center gap-2 text-slate-500 italic bg-slate-100 dark:bg-slate-900 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                                            <Lock className="w-4 h-4" />
+                                            Description hidden for privacy. Verify ownership to view details.
+                                        </span>
+                                    ) : (
+                                        "No description provided."
+                                    )}
                                 </p>
                             </div>
 

@@ -46,7 +46,7 @@ export const getAllListings = query({
             const page = await Promise.all(
                 pageItems.map(async (listing) => ({
                     ...listing,
-                    description: undefined, // Hide description in public list
+                    description: listing.type === "found" ? undefined : listing.description,
                     imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
@@ -68,7 +68,7 @@ export const getAllListings = query({
             const page = await Promise.all(
                 result.page.map(async (listing) => ({
                     ...listing,
-                    description: undefined, // Hide description in public list
+                    description: listing.type === "found" ? undefined : listing.description,
                     imageUrl:
                         listing.images?.length
                             ? await ctx.storage.getUrl(listing.images[0])
@@ -126,7 +126,7 @@ export const searchListings = query({
             const page = await Promise.all(
                 pageItems.map(async (listing) => ({
                     ...listing,
-                    description: undefined, // Hide description
+                    description: listing.type === "found" ? undefined : listing.description,
                     imageUrl: listing.images?.length
                         ? await ctx.storage.getUrl(listing.images[0])
                         : null,
@@ -146,7 +146,7 @@ export const searchListings = query({
             const page = await Promise.all(
                 result.page.map(async (listing) => ({
                     ...listing,
-                    description: undefined, // Hide description
+                    description: listing.type === "found" ? undefined : listing.description,
                     imageUrl:
                         listing.images?.length
                             ? await ctx.storage.getUrl(listing.images[0])
@@ -194,11 +194,11 @@ export const getListingById = query({
         const user = await ctx.auth.getUserIdentity();
         const isOwner = user && user.subject === listing.clerkUserId;
 
-        // Hide description for non-owners to prevent cheating
-        // But allow search to work (handled by search index)
+        // Hide description for found items from non-owners to prevent cheating
+        // Lost items description should be visible to help identification
         const privacySafeListing = {
             ...listing,
-            description: isOwner ? listing.description : undefined, // Or a placeholder
+            description: (listing.type === "found" && !isOwner) ? undefined : listing.description,
             imageUrls: imageUrls.filter((url): url is string => url !== null),
         };
 

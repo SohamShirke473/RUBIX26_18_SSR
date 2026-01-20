@@ -5,134 +5,143 @@ import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// Use gemini-1.5-flash for better rate limits and stability on free tier
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 800,
+    },
+});
+
+type GeneratedQuestion = {
+    question: string;
+    options: string[];
+    correctIndex: number;
+};
 
 export const generateQuestions = action({
     args: {
         claimId: v.id("verificationClaims"),
         listingId: v.id("listings"),
     },
-    handler: async (ctx, args) => {
-        const listing = await ctx.runQuery(api.getListing.getListingById, { id: args.listingId });
+    handler: async (ctx, { claimId, listingId }) => {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("AI configuration error");
+        }
+
+        const listing = await ctx.runQuery(api.getListing.getListingById, {
+            id: listingId,
+        });
 
         if (!listing) {
             throw new Error("Listing not found");
         }
 
-        if (!process.env.GEMINI_API_KEY) {
-            console.error("GEMINI_API_KEY is not set in Convex environment variables.");
-            throw new Error("AI Configuration Error: Missing API Key");
-        }
-
         const prompt = `
-STRICT Item Verification Question Generator Prompt
 You are a STRICT item-verification question generator.
-A user claims they lost the item described below.
-The description below is written by the FINDER of the item.
-Your ONLY job is to test whether the claimant truly knows the item.
-ABSOLUTE RULES (NO EXCEPTIONS)
-You may ONLY use facts that are EXPLICITLY written in:
-Item Title
-Item Description
-You MUST NOT use:
-Item Category by itself
-Location
-Brand if it is "N/A"
-Color if it is "N/A"
-Common knowledge or assumptions (for example: "keys usually have a keyring")
-DO NOT infer, assume, generalize, or add details.
-If a detail is not literally present in the text, it DOES NOT EXIST.
-Every question MUST map directly to a specific phrase from the description.
-Each question must have exactly ONE correct answer.
-INPUT
+
+RULES (NO EXCEPTIONS):
+- Use ONLY facts explicitly written in Item Title or Item Description
+- DO NOT infer, assume, or use common knowledge
+- DO NOT use category, location, or N/A brand/color
+- If a detail is not written, it does not exist
+
+TASK:
+Generate 1–3 multiple-choice questions to verify ownership.
+
+FORMAT REQUIREMENTS:
+- Output MUST be valid JSON
+- Output MUST be either:
+  1) A JSON array of questions
+  2) OR the vague-description fallback object
+
+VAGUE DESCRIPTION FALLBACK:
+If there are not enough explicit facts to generate even ONE solid question,
+output EXACTLY this object and nothing else:
+{
+  "note": "This item description is vague. Generating standard verification questions."
+}
+
+QUESTION FORMAT:
+[
+  {
+    "question": "string",
+    "options": ["A", "B", "C", "D"],
+    "correctIndex": 0
+  }
+]
+
+INPUT:
 Item Title: ${listing.title}
 Item Description: ${listing.description}
-STEP 1 — FACT EXTRACTION (INTERNAL, DO NOT OUTPUT)
-Extract a list of atomic facts exactly as written.
-If a fact is not explicitly stated, do not include it.
-This step is internal only and must never appear in the output.
-STEP 2 — QUESTION GENERATION
-Generate 1 to 3 multiple-choice questions, depending on how many valid facts exist.
-Each question must:
-Be answerable using ONLY the extracted facts
-Test a specific, distinguishing detail
-Have exactly four options
-Contain exactly ONE correct answer
-If only one or two valid facts exist, generate only one or two questions.
-Do NOT invent extra questions to reach a fixed count.
-VAGUE DESCRIPTION FALLBACK (MANDATORY)
-If the description does not contain enough explicit information to generate even one solid fact-based question:
-Output ONLY the following JSON object:
-{
-"note": "This item description is vague. Generating standard verification questions."
-}
-Then generate 1 to 3 GENERAL questions, but:
-Do NOT include invented specifics
-Keep questions broad and non-assumptive
-OUTPUT FORMAT (STRICT)
-Return ONLY a JSON array.
-No explanations.
-No markdown.
-No extra text.
-Each question must follow this structure:
-[
-{
-"question": "Question text",
-"options": ["Option A", "Option B", "Option C", "Option D"],
-"correctIndex": 0
-}
-]
-CRITICAL REMINDERS
-Never guess.
-Never enrich descriptions.
-Never rely on common knowledge.
-If it is not written, it does not exist.
+
+REMINDERS:
+- Exactly 4 options per question
+- Exactly ONE correct answer
+- Never guess
+- Never enrich descriptions
+- Return JSON ONLY
 `;
 
+        const result = await model.generateContent(prompt);
+        const rawText = result.response.text().trim();
+
+        let parsed: unknown;
+
         try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            parsed = JSON.parse(rawText);
+        } catch {
+            console.error("AI returned invalid JSON:", rawText);
+            throw new Error("AI returned malformed output");
+        }
 
-            // More robust JSON extraction: find the first '[' and last ']'
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (!jsonMatch) {
-                console.error("Could not find JSON array in AI response");
-                throw new Error("Invalid AI response format");
-            }
-
-            const jsonStr = jsonMatch[0];
-            const questions = JSON.parse(jsonStr) as {
-                question: string;
-                options: string[];
-                correctIndex: number;
-            }[];
-
-            // Store questions securely in the database
+        // Handle vague-description fallback
+        if (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            "note" in parsed
+        ) {
             await ctx.runMutation(internal.verification.updateClaimWithQuestions, {
-                claimId: args.claimId,
-                questions: questions
+                claimId,
+                questions: [],
             });
 
-            // Return sanitized questions (without correctIndex) to the client can use them if needed immediately
-            return {
-                questions: questions.map(q => ({
-                    question: q.question,
-                    options: q.options
-                }))
-            };
-        } catch (e: any) {
-            console.error("AI Generation failed:", e);
-
-            // Handle Rate Limiting specifically
-            if (e.message?.includes("429") || e.status === 429) {
-                throw new Error("AI service is currently busy. Please try again in a minute.");
-            }
-
-            throw new Error(e instanceof Error ? e.message : "Failed to generate questions");
+            return { questions: [] };
         }
+
+        if (!Array.isArray(parsed)) {
+            throw new Error("AI output is not an array");
+        }
+
+        const questions: GeneratedQuestion[] = parsed;
+
+        // Hard validation
+        for (const q of questions) {
+            if (
+                typeof q.question !== "string" ||
+                !Array.isArray(q.options) ||
+                q.options.length !== 4 ||
+                typeof q.correctIndex !== "number" ||
+                q.correctIndex < 0 ||
+                q.correctIndex > 3
+            ) {
+                console.error("Invalid question shape:", q);
+                throw new Error("AI output failed validation");
+            }
+        }
+
+        await ctx.runMutation(internal.verification.updateClaimWithQuestions, {
+            claimId,
+            questions,
+        });
+
+        // Return sanitized questions to client
+        return {
+            questions: questions.map(({ question, options }) => ({
+                question,
+                options,
+            })),
+        };
     },
 });
