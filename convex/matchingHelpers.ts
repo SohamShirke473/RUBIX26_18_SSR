@@ -113,8 +113,16 @@ export const createMatchInternal = internalMutation({
 export const getMatchesForListing = query({
     args: { listingId: v.id("listings") },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) return []; // Not authenticated
+
         const listing = await ctx.db.get(args.listingId);
         if (!listing) return [];
+
+        // Verify user owns this listing
+        if (listing.clerkUserId !== identity.subject) {
+            return []; // User doesn't own this listing
+        }
 
         let matches;
         if (listing.type === "lost") {
@@ -167,6 +175,17 @@ export const confirmMatch = mutation({
         const match = await ctx.db.get(args.matchId);
         if (!match) throw new Error("Match not found");
 
+        // Verify user owns one of the listings in this match
+        const lostListing = await ctx.db.get(match.lostListingId);
+        const foundListing = await ctx.db.get(match.foundListingId);
+
+        const ownsLost = lostListing?.clerkUserId === identity.subject;
+        const ownsFound = foundListing?.clerkUserId === identity.subject;
+
+        if (!ownsLost && !ownsFound) {
+            throw new Error("You do not have permission to confirm this match");
+        }
+
         // Update match status
         await ctx.db.patch(args.matchId, { status: "confirmed" });
 
@@ -200,6 +219,20 @@ export const rejectMatch = mutation({
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new Error("Unauthorized");
+
+        const match = await ctx.db.get(args.matchId);
+        if (!match) throw new Error("Match not found");
+
+        // Verify user owns one of the listings in this match
+        const lostListing = await ctx.db.get(match.lostListingId);
+        const foundListing = await ctx.db.get(match.foundListingId);
+
+        const ownsLost = lostListing?.clerkUserId === identity.subject;
+        const ownsFound = foundListing?.clerkUserId === identity.subject;
+
+        if (!ownsLost && !ownsFound) {
+            throw new Error("You do not have permission to reject this match");
+        }
 
         await ctx.db.patch(args.matchId, { status: "rejected" });
         return { success: true };

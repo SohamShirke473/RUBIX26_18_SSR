@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import LocationPicker from "@/components/LocationPicker";
 
 /* ---------- Types ---------- */
 
@@ -53,6 +54,8 @@ type ItemCategoryType =
 interface LostFormData {
   itemName: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   description: string;
   image: File | null;
   category: ItemCategoryType;
@@ -69,6 +72,8 @@ const ReportLost: React.FC = () => {
   const initialState: LostFormData = {
     itemName: "",
     location: "",
+    latitude: undefined,
+    longitude: undefined,
     description: "",
     image: null,
     category: "other",
@@ -147,6 +152,8 @@ const ReportLost: React.FC = () => {
         type: "lost",
         categories: [formData.category],
         locationName: formData.location,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         images: storageId ? [storageId] : [],
         color: formData.color || undefined,
         brand: formData.brand || undefined,
@@ -365,23 +372,19 @@ const ReportLost: React.FC = () => {
                   </div>
 
                   {/* Location */}
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-xs font-black text-slate-400 uppercase pl-1">
-                      Last Seen Location
-                    </Label>
-                    <div className="relative group">
-                      <Input
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        required
-                        placeholder="e.g. Library 2nd Floor"
-                        className="h-12 bg-slate-50 border-slate-200 rounded-xl px-4 pr-10 focus-visible:ring-teal-500"
-                      />
-                      <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none" size={18} />
-                    </div>
-                  </div>
+                  <LocationPicker
+                    locationName={formData.location}
+                    latitude={formData.latitude}
+                    longitude={formData.longitude}
+                    onLocationChange={(data) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        location: data.locationName,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                      }));
+                    }}
+                  />
 
                   {/* Description */}
                   <div className="space-y-2">
@@ -390,13 +393,12 @@ const ReportLost: React.FC = () => {
                         <MessageSquare size={14} className="text-teal-500" />
                         Description & Details
                       </Label>
-                      <span className={`text-xs font-medium ${
-                        descriptionLength > MAX_DESCRIPTION_LENGTH
-                          ? "text-red-600"
-                          : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                      <span className={`text-xs font-medium ${descriptionLength > MAX_DESCRIPTION_LENGTH
+                        ? "text-red-600"
+                        : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
                           ? "text-orange-600"
                           : "text-slate-400"
-                      }`}>
+                        }`}>
                         {descriptionLength}/{MAX_DESCRIPTION_LENGTH}
                       </span>
                     </div>
@@ -407,13 +409,12 @@ const ReportLost: React.FC = () => {
                       onChange={handleChange}
                       required
                       placeholder="Describe specific details, when you lost it, etc..."
-                      className={`min-h-[120px] bg-slate-50 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base ${
-                        descriptionLength > MAX_DESCRIPTION_LENGTH
-                          ? "border-2 border-red-500"
-                          : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
+                      className={`min-h-[120px] bg-slate-50 rounded-2xl p-4 focus-visible:ring-teal-500 resize-none text-base ${descriptionLength > MAX_DESCRIPTION_LENGTH
+                        ? "border-2 border-red-500"
+                        : descriptionLength > MAX_DESCRIPTION_LENGTH * 0.9
                           ? "border-2 border-orange-300"
                           : "border-slate-200"
-                      }`}
+                        }`}
                     />
                     {error && (
                       <p className="text-sm text-red-600 font-medium">{error}</p>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import ListingChat from "@/components/ListingChat";
 import VerificationModal from "@/components/verification/VerificationModal";
 import ClaimApprovalList from "@/components/verification/ClaimApprovalList";
+import LocationDisplay from "@/components/LocationDisplay";
 
 export default function ListingDetailPage() {
     const params = useParams<{ id: string }>();
@@ -189,10 +190,20 @@ export default function ListingDetailPage() {
                             <div className="space-y-3">
                                 <h3 className="font-semibold text-lg">Details</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <MapPin className="h-4 w-4 text-primary shrink-0" />
-                                        <span className="text-muted-foreground">{listing.locationName}</span>
-                                    </div>
+                                    {listing.latitude && listing.longitude ? (
+                                        <div className="col-span-full">
+                                            <LocationDisplay
+                                                latitude={listing.latitude}
+                                                longitude={listing.longitude}
+                                                locationName={listing.locationName}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                                            <span className="text-muted-foreground">{listing.locationName}</span>
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-2 text-sm">
                                         <Calendar className="h-4 w-4 text-primary shrink-0" />
                                         <span className="text-muted-foreground">{formattedDate}</span>

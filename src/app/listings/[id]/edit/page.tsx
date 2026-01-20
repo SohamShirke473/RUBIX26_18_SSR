@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import LocationPicker from "@/components/LocationPicker";
 
 type ItemCategoryType = "wallet" | "phone" | "keys" | "bag" | "documents" | "electronics" | "jewelry" | "clothing" | "id_card" | "cash" | "other";
 
@@ -38,6 +39,8 @@ const EditListingPage = () => {
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<ItemCategoryType[]>([]);
   const [locationName, setLocationName] = useState("");
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [color, setColor] = useState("");
   const [brand, setBrand] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,6 +57,8 @@ const EditListingPage = () => {
       setDescription(listing.description!);
       setCategories(listing.categories as ItemCategoryType[]);
       setLocationName(listing.locationName);
+      setLatitude(listing.latitude);
+      setLongitude(listing.longitude);
       setColor(listing.color || "");
       setBrand(listing.brand || "");
     }
@@ -111,6 +116,8 @@ const EditListingPage = () => {
         description: description.trim(),
         categories,
         locationName: locationName.trim(),
+        latitude,
+        longitude,
         color: color.trim() || undefined,
         brand: brand.trim() || undefined,
       });
@@ -225,18 +232,16 @@ const EditListingPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-sm font-semibold">
-                  Location
-                </Label>
-                <Input
-                  id="location"
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  placeholder="e.g., Library 2nd Floor"
-                  required
-                />
-              </div>
+              <LocationPicker
+                locationName={locationName}
+                latitude={latitude}
+                longitude={longitude}
+                onLocationChange={(data) => {
+                  setLocationName(data.locationName);
+                  setLatitude(data.latitude);
+                  setLongitude(data.longitude);
+                }}
+              />
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
