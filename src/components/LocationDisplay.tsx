@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import React from "react";
 import { MapPin } from "lucide-react";
+import dynamic from "next/dynamic";
 
-// Fix for default marker icon in Leaflet with Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+// Dynamically import the map component with SSR disabled
+const LocationMap = dynamic(() => import("./LocationMap"), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[300px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse flex items-center justify-center text-slate-400">
+            Loading Map...
+        </div>
+    ),
 });
 
 interface LocationDisplayProps {
@@ -25,22 +25,6 @@ export default function LocationDisplay({
     longitude,
     locationName,
 }: LocationDisplayProps) {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    // Only render map on client side
-    if (!isClient) {
-        return (
-            <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-muted-foreground">{locationName}</span>
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
@@ -49,22 +33,7 @@ export default function LocationDisplay({
             </div>
 
             <div className="rounded-xl overflow-hidden border-2 border-slate-200">
-                <MapContainer
-                    center={[latitude, longitude]}
-                    zoom={15}
-                    style={{ height: "300px", width: "100%" }}
-                    dragging={false}
-                    zoomControl={false}
-                    scrollWheelZoom={false}
-                    doubleClickZoom={false}
-                    className="z-0"
-                >
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Marker position={[latitude, longitude]} />
-                </MapContainer>
+                <LocationMap latitude={latitude} longitude={longitude} />
             </div>
         </div>
     );

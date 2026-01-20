@@ -48,6 +48,17 @@ type ItemCategoryType =
   | "electronics"
   | "jewelry"
   | "clothing"
+  | "watch"
+  | "glasses"
+  | "laptop"
+  | "tablet"
+  | "headphones"
+  | "camera"
+  | "musical_instrument"
+  | "sports_gear"
+  | "tools"
+  | "pet"
+  | "tickets"
   | "id_card"
   | "cash"
   | "other";
@@ -329,6 +340,17 @@ const ReportLost: React.FC = () => {
                           "electronics",
                           "jewelry",
                           "clothing",
+                          "watch",
+                          "glasses",
+                          "laptop",
+                          "tablet",
+                          "headphones",
+                          "camera",
+                          "musical_instrument",
+                          "sports_gear",
+                          "tools",
+                          "pet",
+                          "tickets",
                           "id_card",
                           "cash",
                           "other",

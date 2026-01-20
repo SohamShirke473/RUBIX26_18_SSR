@@ -7,10 +7,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-2.5-flash",
     generationConfig: {
         temperature: 0,
-        maxOutputTokens: 800,
+        maxOutputTokens: 2048,
     },
 });
 
@@ -98,28 +98,45 @@ FINAL CHECK BEFORE RESPONDING:
 
 `;
 
-        const result = await model.generateContent(prompt);
-        let rawText = result.response.text().trim();
+        const maxRetries = 3;
+        let attempt = 0;
+        let parsed: any;
 
-        // Sanitize the output - remove markdown code blocks if present
-        if (rawText.startsWith("```")) {
-            rawText = rawText.replace(/^```\w*\n?/, "").replace(/```$/, "").trim();
-        }
+        while (attempt < maxRetries) {
+            try {
+                const result = await model.generateContent(prompt);
+                let rawText = result.response.text().trim();
 
-        let parsed: unknown;
+                // Sanitize the output - remove markdown code blocks if present
+                if (rawText.startsWith("```")) {
+                    rawText = rawText.replace(/^```\w*\n?/, "").replace(/```$/, "").trim();
+                }
 
-        try {
-            parsed = JSON.parse(rawText);
-        } catch {
-            console.error("AI returned invalid JSON:", rawText);
-            throw new Error("AI returned malformed output");
+                parsed = JSON.parse(rawText);
+                break; // If successful, exit loop
+            } catch (e: any) {
+                console.error(`AI Attempt ${attempt + 1} failed:`, e);
+
+                // key checks for retryable errors (503 Service Unavailable, or generic overloaded messages)
+                const isRetryable = e.message?.includes("503") || e.status === 503 || e.message?.includes("overloaded") || e instanceof SyntaxError;
+
+                if (isRetryable && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    attempt++;
+                    continue;
+                }
+
+                throw new Error("AI returned malformed output or service unavailable");
+            }
         }
 
         // Handle vague-description fallback
         if (
             typeof parsed === "object" &&
             parsed !== null &&
-            "note" in parsed
+            ("vague" in parsed || "note" in parsed)
         ) {
             await ctx.runMutation(internal.verification.updateClaimWithQuestions, {
                 claimId,

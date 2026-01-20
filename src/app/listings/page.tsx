@@ -19,7 +19,7 @@ import { X, Search, Filter } from "lucide-react";
 
 export default function ListingsPage() {
   type FilterType = "all" | "lost" | "found";
-  type ItemCategoryType = "wallet" | "phone" | "keys" | "bag" | "documents" | "electronics" | "jewelry" | "clothing" | "id_card" | "cash" | "other";
+  type ItemCategoryType = "wallet" | "phone" | "keys" | "bag" | "documents" | "electronics" | "jewelry" | "clothing" | "watch" | "glasses" | "laptop" | "tablet" | "headphones" | "camera" | "musical_instrument" | "sports_gear" | "tools" | "pet" | "tickets" | "id_card" | "cash" | "other";
 
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [selectedCategory, setSelectedCategory] = useState<ItemCategoryType | null>(null);
@@ -39,7 +39,7 @@ export default function ListingsPage() {
 
   const categories: ItemCategoryType[] = [
     "wallet", "phone", "keys", "bag", "documents", "electronics",
-    "jewelry", "clothing", "id_card", "cash", "other"
+    "jewelry", "clothing", "watch", "glasses", "laptop", "tablet", "headphones", "camera", "musical_instrument", "sports_gear", "tools", "pet", "tickets", "id_card", "cash", "other"
   ];
 
   return (

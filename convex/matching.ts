@@ -106,7 +106,8 @@ export const findAndCreateMatches = internalAction({
             const ruleScore = calculateWeightedRuleScore(sourceListing, candidate);
 
             // Final Score
-            const hybridScore = (vectorScore * 0.4) + (ruleScore * 0.6);
+            // Final Score: Simple Average
+            const hybridScore = (vectorScore + ruleScore) / 2;
 
             // Threshold: 0.45 (slightly stricter to avoid bad matches, but rules help good ones pass)
             if (hybridScore >= 0.45) {
@@ -126,47 +127,81 @@ export const findAndCreateMatches = internalAction({
 // HEURISTIC SCORING
 function calculateWeightedRuleScore(source: any, target: any): number {
     let score = 0;
-    const maxScore = 150; // Total possible points
+    const maxScore = 100; // Normalized to 100 for percentages
 
-    // 1. Category Match (CRITICAL) - 50 points
-    // If categories don't overlap, it's very unlikely to be a match.
+    // 1. Category Match (30%)
     const categoryOverlap = source.categories.some((c: string) => target.categories.includes(c));
     if (categoryOverlap) {
-        score += 50;
+        score += 30;
     } else {
-        return 0; // Immediate disqualification if categories don't match at all? 
-        // Maybe too strict, but for "Lost & Found" usually category is known.
-        // Let's keep it as simply 0 points for this section.
+        return 0; // Distinct categories likely don't match
     }
 
-    // 2. Title Fuzzy Match (High Relevance) - 40 points
-    // Simple inclusion check
+    // 2. Location Match (25%)
+    if (source.latitude && source.longitude && target.latitude && target.longitude) {
+        const distance = getDistanceFromLatLonInKm(
+            source.latitude,
+            source.longitude,
+            target.latitude,
+            target.longitude
+        );
+        if (distance <= 5) { // Within 5km
+            score += 25;
+        } else if (distance <= 20) { // Within 20km partial credit
+            score += 10;
+        }
+    }
+
+    // 3. Title/Text Fuzzy Match (15%)
     const sourceTitle = source.title.toLowerCase();
     const targetTitle = target.title.toLowerCase();
     if (sourceTitle.includes(targetTitle) || targetTitle.includes(sourceTitle)) {
-        score += 40;
+        score += 15;
     } else {
-        // Partial word match check could go here
         const sourceWords = sourceTitle.split(" ");
         const targetWords = targetTitle.split(" ");
         const intersection = sourceWords.filter((w: string) => targetWords.includes(w));
-        if (intersection.length > 0) score += 10 * intersection.length; // Up to 40 max
+        if (intersection.length > 0) score += Math.min(15, 5 * intersection.length);
     }
 
-    // 3. Brand Match (Medium Relevance) - 30 points
+    // 4. Brand Match (10%)
     if (source.brand && target.brand) {
         if (source.brand.toLowerCase() === target.brand.toLowerCase()) {
-            score += 30;
+            score += 10;
         }
     }
 
-    // 4. Color Match (Medium Relevance) - 30 points
+    // 5. Color Match (10%)
     if (source.color && target.color) {
         if (source.color.toLowerCase() === target.color.toLowerCase()) {
-            score += 30;
+            score += 10;
         }
     }
 
-    // Normalized 0-1
-    return Math.min(score, maxScore) / maxScore;
+    // 6. Date Proximity (10%)
+    const timeDiff = Math.abs(source.createdAt - target.createdAt);
+    const dayDiff = timeDiff / (1000 * 60 * 60 * 24);
+    if (dayDiff <= 7) { // Within 7 days
+        score += 10;
+    } else if (dayDiff <= 30) {
+        score += 5;
+    }
+
+    return score / maxScore;
+}
+
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function deg2rad(deg: number) {
+    return deg * (Math.PI / 180);
 }
