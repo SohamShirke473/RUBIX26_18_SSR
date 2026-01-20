@@ -210,7 +210,7 @@ export default function VerificationModal({ listingId, listingTitle }: Verificat
                                             key={idx}
                                             variant="outline"
                                             disabled={isSubmitting}
-                                            className="justify-start h-auto py-3 px-4 text-left whitespace-normal border-slate-700 hover:bg-slate-800 hover:text-white text-slate-300"
+                                            className="justify-start h-auto py-3 px-4 text-left whitespace-normal border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white"
                                             onClick={() => handleAnswer(idx)}
                                         >
                                             <span className="mr-3 text-slate-500 font-mono text-xs">

@@ -50,9 +50,18 @@ export const processNewListing = internalAction({
             Location: ${listing.locationName}
         `.trim();
 
-        const embedding = await ctx.runAction(internal.matching.generateEmbedding, {
+        // Generate Embedding and Verification Questions (concurrently)
+        const embeddingPromise = ctx.runAction(internal.matching.generateEmbedding, {
             text: textToEmbed,
         });
+
+        const questionsPromise = listing.type === "found" ?
+            ctx.runAction(internal.verificationActions.generateQuestionsForListing, {
+                listingId: args.listingId,
+            }).catch(e => console.error("Question gen failed", e)) : // graceful failure
+            Promise.resolve(); // no-op for lost items
+
+        const [embedding] = await Promise.all([embeddingPromise, questionsPromise]);
 
         await ctx.runMutation(internal.matchingHelpers.updateListingEmbedding, {
             listingId: args.listingId,

@@ -46,6 +46,16 @@ export const initiateClaim = mutation({
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("Unauthorized");
 
+        const existingApproved = await ctx.db
+            .query("verificationClaims")
+            .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
+            .filter((q) => q.eq(q.field("status"), "approved"))
+            .first();
+
+        if (existingApproved) {
+            throw new Error("This item has already been verified by another user.");
+        }
+
         const existing = await ctx.db
             .query("verificationClaims")
             .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
@@ -81,14 +91,23 @@ export const approveClaim = mutation({
             throw new Error("Unauthorized: Only the finder can approve claims");
         }
 
-        // Schedule the AI action
-        await ctx.scheduler.runAfter(0, api.verificationActions.generateQuestions, {
-            claimId: args.claimId,
-            listingId: listing._id,
-        });
+        // Check if questions are already generated for this listing
+        if (listing.generatedQuestions && listing.generatedQuestions.length > 0) {
+            // Use pre-generated questions!
+            await ctx.db.patch(args.claimId, {
+                generatedQuestions: listing.generatedQuestions,
+                status: "questions_generated",
+            });
+        } else {
+            // Fallback: Schedule the AI action
+            await ctx.scheduler.runAfter(0, api.verificationActions.generateQuestions, {
+                claimId: args.claimId,
+                listingId: listing._id,
+            });
 
-        // Set status to 'generating' so UI can reflect the state
-        await ctx.db.patch(args.claimId, { status: "generating" });
+            // Set status to 'generating' so UI can reflect the state
+            await ctx.db.patch(args.claimId, { status: "generating" });
+        }
     },
 });
 
@@ -106,6 +125,22 @@ export const updateClaimWithQuestions = internalMutation({
         await ctx.db.patch(args.claimId, {
             generatedQuestions: args.questions,
             status: "questions_generated",
+        });
+    },
+});
+
+export const updateListingWithQuestions = internalMutation({
+    args: {
+        listingId: v.id("listings"),
+        questions: v.array(v.object({
+            question: v.string(),
+            options: v.array(v.string()),
+            correctIndex: v.number(),
+        })),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.listingId, {
+            generatedQuestions: args.questions,
         });
     },
 });
@@ -149,6 +184,18 @@ export const submitVerificationAnswers = mutation({
         // Strict for now: All must be correct.
         const isApproved = correctCount === total;
 
+        if (isApproved) {
+            const existingApproved = await ctx.db
+                .query("verificationClaims")
+                .withIndex("by_listing", (q) => q.eq("listingId", claim.listingId))
+                .filter((q) => q.eq(q.field("status"), "approved"))
+                .first();
+
+            if (existingApproved && existingApproved._id !== args.claimId) {
+                throw new Error("Another user has already verified this item.");
+            }
+        }
+
         await ctx.db.patch(args.claimId, {
             answers: args.answers,
             status: isApproved ? "approved" : "rejected", // or 'failed'
@@ -178,5 +225,28 @@ export const resolveListing = mutation({
             status: "resolved",
             updatedAt: Date.now(),
         });
+
+        // LOCK CHAT: Remove everyone except Owner and Verified Claimant
+        const conversation = await ctx.db
+            .query("conversations")
+            .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
+            .first();
+
+        if (conversation) {
+            const approvedClaim = await ctx.db
+                .query("verificationClaims")
+                .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
+                .filter((q) => q.eq(q.field("status"), "approved"))
+                .first();
+
+            const newParticipants = [listing.clerkUserId]; // Always include owner
+            if (approvedClaim) {
+                newParticipants.push(approvedClaim.claimantClerkUserId);
+            }
+
+            await ctx.db.patch(conversation._id, {
+                participantIds: newParticipants,
+            });
+        }
     },
 });

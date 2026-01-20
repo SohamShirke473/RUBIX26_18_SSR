@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Check, X, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
-interface ClaimApprovalListProps {
-    listingId: Id<"listings">;
-}
 
-export default function ClaimApprovalList({ listingId }: ClaimApprovalListProps) {
+
+export default function ClaimApprovalList({ listingId, isResolved }: { listingId: Id<"listings">, isResolved?: boolean }) {
     const claims = useQuery(api.verification.getPendingClaims, { listingId });
     const approveClaim = useMutation(api.verification.approveClaim);
     const resolveListing = useMutation(api.verification.resolveListing);
@@ -33,6 +31,15 @@ export default function ClaimApprovalList({ listingId }: ClaimApprovalListProps)
             setIsProcessing(null);
         }
     };
+
+    if (isResolved) {
+        return (
+            <div className="border border-green-200 bg-green-50 dark:bg-green-900/10 dark:border-green-900 rounded-xl p-4 flex items-center justify-center gap-2 text-green-700 dark:text-green-300">
+                <Check className="w-5 h-5" />
+                <span className="font-medium">You can now chat with the Verified Owner</span>
+            </div>
+        );
+    }
 
     return (
         <div className="border border-orange-200 bg-orange-50 dark:bg-orange-900/10 dark:border-orange-900 rounded-xl p-4 space-y-3">

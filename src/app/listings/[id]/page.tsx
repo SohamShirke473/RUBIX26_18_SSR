@@ -133,7 +133,7 @@ export default function ListingDetailPage() {
                                     {/* Finder View: Approve Claims */}
                                     {isOwner && listing.type === "found" && (
                                         <div className="mb-6">
-                                            <ClaimApprovalList listingId={listingId} />
+                                            <ClaimApprovalList listingId={listingId} isResolved={listing.status === "resolved"} />
                                         </div>
                                     )}
 
@@ -328,7 +328,7 @@ export default function ListingDetailPage() {
                 </div>
 
                 {/* Chat Section */}
-                <ListingChat listingId={listingId} />
+                <ListingChat listingId={listingId} isResolved={listing.status === "resolved"} />
 
                 {/* Lightbox Overlay */}
                 {expandedImage && (

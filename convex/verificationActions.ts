@@ -1,6 +1,6 @@
 "use node";
 
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -179,5 +179,159 @@ FINAL CHECK BEFORE RESPONDING:
                 options,
             })),
         };
+    },
+});
+
+export const generateQuestionsForListing = internalAction({
+    args: {
+        listingId: v.id("listings"),
+    },
+    handler: async (ctx, { listingId }) => {
+        if (!process.env.GEMINI_API_KEY) {
+            console.warn("AI configuration error: Missing GEMINI_API_KEY");
+            return;
+        }
+
+        const listing = await ctx.runQuery(internal.matchingHelpers.getListingInternal, {
+            listingId,
+        });
+
+        if (!listing) {
+            console.error("Listing not found for question generation");
+            return;
+        }
+
+        // Only generate for Found items
+        if (listing.type !== "found") return;
+
+        const prompt = `
+You are a STRICT item-verification question generator.
+
+Your ONLY purpose is to verify whether a claimant truly owns the item.
+
+ABSOLUTE RULES (NO EXCEPTIONS):
+1. You may use ONLY information that is EXPLICITLY stated in:
+   - Item Title
+   - Item Description
+2. If a detail is not literally written, it DOES NOT EXIST.
+3. You MUST NOT:
+   - Infer, assume, or use common knowledge
+   - Rephrase vague ideas into specific facts
+   - Use item category, location, brand, color, or any field marked "N/A"
+4. Every question MUST test a **specific, concrete, verifiable detail** found verbatim in the text.
+5. If the description is too vague to form at least ONE clear verification question, you MUST return the fallback object.
+
+QUESTION CONSTRAINTS:
+- Generate 1–3 multiple-choice questions ONLY
+- Each question must:
+  - Be answerable using the given text alone
+  - Refer to a single explicit detail (e.g., text written, object mentioned, quantity stated)
+- DO NOT ask opinion-based, generic, or speculative questions
+
+ANSWER OPTIONS RULES:
+- Exactly 4 options per question
+- Exactly ONE correct option
+- Incorrect options must be plausible but NOT stated in the text
+
+OUTPUT FORMAT (STRICT):
+- Output MUST be valid JSON ONLY
+- Output MUST be EITHER:
+  1) A JSON array of questions
+  2) OR the vague-description fallback object (and nothing else)
+
+QUESTION FORMAT:
+[
+  {
+    "question": "string",
+    "options": ["A", "B", "C", "D"],
+    "correctIndex": 0
+  }
+]
+
+FALLBACK FORMAT (USE ONLY IF NO VERIFIABLE DETAILS EXIST):
+{
+  "vague": true,
+  "reason": "The item description does not contain any concrete, verifiable details that can be used to generate ownership-verification questions."
+}
+
+INPUT:
+Item Title: ${listing.title}
+Item Description: ${listing.description}
+
+FINAL CHECK BEFORE RESPONDING:
+- If any question could be answered by guessing or common knowledge → DO NOT GENERATE IT
+- If you are unsure → RETURN THE FALLBACK
+`;
+
+        const maxRetries = 3;
+        let attempt = 0;
+        let parsed: any;
+
+        while (attempt < maxRetries) {
+            try {
+                const result = await model.generateContent(prompt);
+                let rawText = result.response.text().trim();
+
+                if (rawText.startsWith("```")) {
+                    rawText = rawText.replace(/^```\w*\n?/, "").replace(/```$/, "").trim();
+                }
+
+                parsed = JSON.parse(rawText);
+                break;
+            } catch (e: any) {
+                console.error(`AI Attempt ${attempt + 1} failed:`, e);
+                const isRetryable = e.message?.includes("503") || e.status === 503 || e.message?.includes("overloaded") || e instanceof SyntaxError;
+
+                if (isRetryable && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    attempt++;
+                    continue;
+                }
+
+                console.error("Failed to generate questions after retries");
+                return; // Silently fail for background process
+            }
+        }
+
+        if (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            ("vague" in parsed || "note" in parsed)
+        ) {
+            // Vague description - save empty array
+            await ctx.runMutation(internal.verification.updateListingWithQuestions, {
+                listingId,
+                questions: [],
+            });
+            return;
+        }
+
+        if (!Array.isArray(parsed)) {
+            console.error("AI output is not an array");
+            return;
+        }
+
+        const questions: GeneratedQuestion[] = parsed;
+
+        // Validation
+        for (const q of questions) {
+            if (
+                typeof q.question !== "string" ||
+                !Array.isArray(q.options) ||
+                q.options.length !== 4 ||
+                typeof q.correctIndex !== "number" ||
+                q.correctIndex < 0 ||
+                q.correctIndex > 3
+            ) {
+                console.error("Invalid question shape:", q);
+                return;
+            }
+        }
+
+        await ctx.runMutation(internal.verification.updateListingWithQuestions, {
+            listingId,
+            questions,
+        });
     },
 });

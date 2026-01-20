@@ -11,9 +11,10 @@ import { Send, UserCircle2 } from "lucide-react";
 
 interface ListingChatProps {
     listingId: Id<"listings">;
+    isResolved?: boolean;
 }
 
-export default function ListingChat({ listingId }: ListingChatProps) {
+export default function ListingChat({ listingId, isResolved }: ListingChatProps) {
     const { user } = useUser();
     const [newMessage, setNewMessage] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -45,6 +46,7 @@ export default function ListingChat({ listingId }: ListingChatProps) {
             setNewMessage("");
         } catch (error) {
             console.error("Failed to send message:", error);
+            alert("Failed to send: " + (error as any).message);
         }
     };
 
@@ -68,6 +70,11 @@ export default function ListingChat({ listingId }: ListingChatProps) {
         );
     }
 
+    // Check if user is a participant
+    const isParticipant = user && conversation.participantIds.includes(user.id);
+    const showResolvedBanner = isResolved && isParticipant;
+    const isRestricted = isResolved && !isParticipant;
+
     return (
         <div className="border dark:border-slate-700 rounded-2xl bg-card dark:bg-slate-800 flex flex-col h-[600px] shadow-sm">
             <div className="p-4 border-b dark:border-slate-700 flex items-center justify-between bg-muted/30 dark:bg-slate-700/30 rounded-t-2xl">
@@ -81,6 +88,15 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                     </div>
                 </div>
             </div>
+
+            {isResolved && (
+                <div className="bg-slate-900 text-slate-300 px-4 py-2 text-xs text-center border-b border-slate-800">
+                    <span className="font-medium text-white">Item Resolved.</span>
+                    {isRestricted
+                        ? " Chat is closed."
+                        : " You can continue chatting with the verified owner."}
+                </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
                 <div className="space-y-4">
@@ -129,13 +145,13 @@ export default function ListingChat({ listingId }: ListingChatProps) {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder={user ? "Type a message..." : "Sign in to chat"}
-                        disabled={!user}
-                        className="flex-1 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400"
+                        placeholder={isRestricted ? "Chat closed for this listing" : (user ? "Type a message..." : "Sign in to chat")}
+                        disabled={!user || isRestricted}
+                        className="flex-1 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400 disabled:opacity-50"
                     />
                     <Button
                         onClick={handleSendMessage}
-                        disabled={!user || !newMessage.trim()}
+                        disabled={!user || !newMessage.trim() || isRestricted}
                         size="icon"
                         className="shrink-0"
                     >

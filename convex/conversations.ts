@@ -41,6 +41,19 @@ export const sendMessage = mutation({
             throw new Error("Message contains inappropriate language.");
         }
 
+        const conversation = await ctx.db.get(args.conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+
+        const listing = await ctx.db.get(conversation.listingId);
+        if (!listing) throw new Error("Listing not found");
+
+        // Enforce Chat Restriction for Resolved Listings
+        if (listing.status === "resolved") {
+            if (!conversation.participantIds.includes(args.senderClerkUserId)) {
+                throw new Error("This listing is resolved. Chat is restricted to the owner and verified user.");
+            }
+        }
+
         await ctx.db.insert("messages", {
             conversationId: args.conversationId,
             senderClerkUserId: args.senderClerkUserId,
@@ -50,7 +63,6 @@ export const sendMessage = mutation({
             createdAt: Date.now(),
         });
 
-        const conversation = await ctx.db.get(args.conversationId);
         if (conversation && !conversation.participantIds.includes(args.senderClerkUserId)) {
             await ctx.db.patch(args.conversationId, {
                 participantIds: [...conversation.participantIds, args.senderClerkUserId],
@@ -70,6 +82,19 @@ export const getMessages = query({
         conversationId: v.id("conversations"),
     },
     handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error("Unauthorized");
+
+        const conversation = await ctx.db.get(args.conversationId);
+        if (!conversation) {
+            return []; // Conversation deleted or not found, return empty messages
+        }
+
+        if (!conversation.participantIds.includes(identity.subject)) {
+            // User is not a participant (e.g. removed after resolution)
+            return [];
+        }
+
         return await ctx.db
             .query("messages")
             .withIndex("by_conversation", q =>
