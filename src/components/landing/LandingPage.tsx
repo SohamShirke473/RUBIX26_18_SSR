@@ -42,12 +42,13 @@ function FeatureSection({ feature, index }: { feature: any; index: number }) {
 
                 <div className={`relative h-[400px] w-full rounded-3xl overflow-hidden shadow-2xl ${index % 2 === 0 ? "md:order-2" : "md:order-1"}`}>
                     <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-20 dark:opacity-40`} />
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-300/20 font-bold text-9xl select-none">
-                        {index + 1}
-                    </div>
-                    <div className="absolute inset-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl flex items-center justify-center bg-white/50 dark:bg-black/20 backdrop-blur-sm">
-                        <span className="text-sm text-slate-500 font-mono">Feature Visualization</span>
-                    </div>
+                    <Image
+                        src={feature.image}
+                        alt={feature.title}
+                        fill
+                        className="object-cover"
+                        priority={index === 0}
+                    />
                 </div>
             </div>
         </motion.div>
@@ -77,7 +78,8 @@ export default function LandingPage() {
             color: "bg-blue-600",
             gradient: "from-blue-500 to-indigo-600",
             icon: Wand2,
-            tag: "POWERED BY GEMINI"
+            tag: "POWERED BY GEMINI",
+            image: "/landing1.png"
         },
         {
             title: "Secure Verification",
@@ -85,7 +87,8 @@ export default function LandingPage() {
             color: "bg-purple-600",
             gradient: "from-purple-500 to-pink-600",
             icon: ShieldCheck,
-            tag: "ANTI-FRAUD PROTECTION"
+            tag: "ANTI-FRAUD PROTECTION",
+            image: "/landing2.png"
         },
         {
             title: "Accessible Intelligence",
@@ -93,7 +96,8 @@ export default function LandingPage() {
             color: "bg-teal-600",
             gradient: "from-teal-500 to-emerald-600",
             icon: Eye,
-            tag: "WCAG 2.1 COMPLIANT"
+            tag: "WCAG 2.1 COMPLIANT",
+            image: "/image3.png"
         }
     ];
 
@@ -126,4 +130,3 @@ export default function LandingPage() {
         </div>
     );
 }
-
