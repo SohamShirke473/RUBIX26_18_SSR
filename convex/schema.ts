@@ -120,7 +120,7 @@ export default defineSchema({
             v.literal("pending"), // Initial request by claimant
             v.literal("generating"), // Approved by finder, generating questions
             v.literal("questions_generated"), // AI has generated questions
-            v.literal("approved"), // Successfully answered
+            v.literal("resolved"), // Successfully answered (formerly approved)
             v.literal("rejected"), // Incorrect answers or rejected by finder
             v.literal("failed") // Too many attempts (optional, or just rejected)
         ),
@@ -128,4 +128,16 @@ export default defineSchema({
         createdAt: v.number(),
         reviewedAt: v.optional(v.number()),
     }).index("by_listing", ["listingId"]),
+
+    issues: defineTable({
+        userId: v.string(), // Clerk ID
+        listingId: v.optional(v.id("listings")), // Optional linkage to a listing
+        title: v.string(),
+        description: v.string(),
+        status: v.union(v.literal("pending"), v.literal("solved")),
+        createdAt: v.number(),
+        adminResponse: v.optional(v.string()),
+    })
+        .index("by_user", ["userId"])
+        .index("by_status", ["status"]),
 });

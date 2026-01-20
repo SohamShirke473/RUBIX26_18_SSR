@@ -56,6 +56,85 @@ const MessageViewer = ({ conversationId }: { conversationId: Id<"conversations">
   );
 };
 
+
+const IssuesSection = () => {
+  const issues = useQuery(api.issues.getAllIssues);
+  const resolveIssue = useMutation(api.issues.resolveIssue);
+
+  const handleResolve = async (issueId: Id<"issues">) => {
+    try {
+      await resolveIssue({ issueId, adminResponse: "Resolved by admin" });
+    } catch (error) {
+      console.error(error);
+      alert("Failed to resolve issue");
+    }
+  };
+
+  if (!issues) return null;
+
+  return (
+    <Card className="mb-10">
+      <CardHeader>
+        <CardTitle>User Reports & Issues</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Title</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Description</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Date</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {issues.length > 0 ? (
+                issues.map((issue) => (
+                  <tr key={issue._id} className="border-b dark:border-slate-700 hover:bg-muted/50 dark:hover:bg-slate-800/50 transition">
+                    <td className="py-3 px-4">
+                      <Badge variant={issue.status === "solved" ? "default" : "destructive"} className="capitalize">
+                        {issue.status}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 font-medium text-sm">{issue.title}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground truncate max-w-xs" title={issue.description}>
+                      {issue.description}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {new Date(issue.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      {issue.status !== "solved" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
+                          onClick={() => handleResolve(issue._id)}
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Resolve
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-8 px-4 text-center text-muted-foreground">
+                    No issues reported
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AdminDashboard = () => {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -270,6 +349,9 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Issues Table */}
+        <IssuesSection />
 
         {/* Listings Table */}
         <Card>

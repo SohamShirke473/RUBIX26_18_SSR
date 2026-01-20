@@ -19,6 +19,8 @@ export default function ListingChat({ listingId }: ListingChatProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const conversation = useQuery(api.conversations.getConversation, { listingId });
+    const listing = useQuery(api.getListing.getListingById, { id: listingId });
+    const claimStatus = useQuery(api.verification.getClaimStatus, { listingId });
 
     const messages = useQuery(api.conversations.getMessages,
         conversation ? { conversationId: conversation._id } : "skip"
@@ -55,7 +57,7 @@ export default function ListingChat({ listingId }: ListingChatProps) {
         }
     };
 
-    if (conversation === undefined) {
+    if (conversation === undefined || listing === undefined || claimStatus === undefined) {
         return <div className="h-64 flex items-center justify-center text-muted-foreground">Loading chat...</div>;
     }
 
@@ -64,6 +66,48 @@ export default function ListingChat({ listingId }: ListingChatProps) {
         return (
             <div className="h-64 flex flex-col items-center justify-center text-muted-foreground p-6 border-2 border-dashed rounded-xl">
                 <p>Chat is unavailable for this listing.</p>
+            </div>
+        );
+    }
+
+    // Access Control Logic
+    const isFounder = user?.id === listing?.clerkUserId;
+    const isClaimApproved = claimStatus?.status === "resolved";
+    const isLocked = !isFounder && !isClaimApproved;
+
+    if (isLocked) {
+        return (
+            <div className="border dark:border-slate-700 rounded-2xl bg-card dark:bg-slate-800 flex flex-col h-[600px] shadow-sm relative overflow-hidden">
+                <div className="absolute inset-0 bg-background/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="bg-primary/10 dark:bg-teal-900/30 p-4 rounded-full mb-4">
+                        <UserCircle2 className="w-8 h-8 text-primary dark:text-teal-400" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">Chat Locked</h3>
+                    <p className="text-muted-foreground dark:text-slate-400 max-w-xs mb-6">
+                        {claimStatus?.status === "pending" || claimStatus?.status === "generating" || claimStatus?.status === "questions_generated"
+                            ? "Please complete the verification process to unlock the chat."
+                            : "You need to verify your claim to access this chat."}
+                    </p>
+                    {/* Optionally add a button to trigger verification modal if not already open elsewhere */}
+                </div>
+                {/* Blurred background content to imply there is a chat behind it */}
+                <div className="p-4 border-b dark:border-slate-700 flex items-center justify-between bg-muted/30 dark:bg-slate-700/30 rounded-t-2xl opacity-20">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 dark:bg-teal-900/30 p-2 rounded-full">
+                            <Send className="w-4 h-4 text-primary dark:text-teal-400" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-sm">Listing Chat</h3>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex-1 p-4 opacity-20">
+                    <div className="space-y-4">
+                        <div className="flex flex-col items-center justify-center h-full">
+                            <p>Messages are hidden</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

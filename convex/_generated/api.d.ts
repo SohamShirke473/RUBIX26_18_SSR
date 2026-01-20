@@ -13,6 +13,7 @@ import type * as ai from "../ai.js";
 import type * as conversations from "../conversations.js";
 import type * as email from "../email.js";
 import type * as getListing from "../getListing.js";
+import type * as issues from "../issues.js";
 import type * as matches from "../matches.js";
 import type * as matching from "../matching.js";
 import type * as matchingHelpers from "../matchingHelpers.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   conversations: typeof conversations;
   email: typeof email;
   getListing: typeof getListing;
+  issues: typeof issues;
   matches: typeof matches;
   matching: typeof matching;
   matchingHelpers: typeof matchingHelpers;

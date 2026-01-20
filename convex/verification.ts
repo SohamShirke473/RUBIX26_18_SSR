@@ -151,11 +151,23 @@ export const submitVerificationAnswers = mutation({
 
         await ctx.db.patch(args.claimId, {
             answers: args.answers,
-            status: isApproved ? "approved" : "rejected", // or 'failed'
+            status: isApproved ? "resolved" : "rejected", // or 'failed'
             reviewedAt: Date.now(),
         });
 
-        return isApproved ? "approved" : "rejected";
+        if (isApproved) {
+            const listing = await ctx.db.get(claim.listingId);
+            if (listing) {
+                await ctx.scheduler.runAfter(0, internal.email.sendVerificationSuccessNotifications, {
+                    listingId: listing._id,
+                    itemName: listing.title,
+                    founderId: listing.clerkUserId,
+                    claimantId: user.subject,
+                });
+            }
+        }
+
+        return isApproved ? "resolved" : "rejected";
     },
 });
 

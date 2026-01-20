@@ -2,6 +2,7 @@
 
 import MyListings from "@/components/dashboard/MyListings";
 import MatchSuggestions from "@/components/dashboard/MatchSuggestions";
+import MyIssues from "@/components/dashboard/MyIssues";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { PlusCircle, Search } from "lucide-react";
@@ -66,7 +67,8 @@ export default function Dashboard() {
 
                     {/* Sidebar (30%) */}
                     <div className="w-full lg:w-[320px] space-y-6 sticky top-24">
-                        <div className="p-1"> {/* Spacer/Padding fixer */}
+                        <div className="p-1 space-y-6"> {/* Spacer/Padding fixer */}
+                            <MyIssues />
                             <MatchSuggestions />
                         </div>
 
