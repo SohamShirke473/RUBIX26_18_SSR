@@ -27,6 +27,8 @@ export const createListing = mutation({
         categories: v.array(ItemCategory),
 
         locationName: v.string(),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
         images: v.array(v.id("_storage")),
 
         color: v.optional(v.string()),
@@ -73,6 +75,8 @@ export const updateListing = mutation({
         description: v.optional(v.string()),
         categories: v.optional(v.array(ItemCategory)),
         locationName: v.optional(v.string()),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
         images: v.optional(v.array(v.id("_storage"))),
         color: v.optional(v.string()),
         brand: v.optional(v.string()),
@@ -100,6 +104,8 @@ export const updateListing = mutation({
         if (args.description !== undefined) updateData.description = args.description;
         if (args.categories !== undefined) updateData.categories = args.categories;
         if (args.locationName !== undefined) updateData.locationName = args.locationName;
+        if (args.latitude !== undefined) updateData.latitude = args.latitude;
+        if (args.longitude !== undefined) updateData.longitude = args.longitude;
         if (args.images !== undefined) updateData.images = args.images;
         if (args.color !== undefined) updateData.color = args.color;
         if (args.brand !== undefined) updateData.brand = args.brand;

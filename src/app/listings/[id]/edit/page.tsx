@@ -51,7 +51,7 @@ const EditListingPage = () => {
   useEffect(() => {
     if (listing) {
       setTitle(listing.title);
-      setDescription(listing.description);
+      setDescription(listing.description!);
       setCategories(listing.categories as ItemCategoryType[]);
       setLocationName(listing.locationName);
       setColor(listing.color || "");

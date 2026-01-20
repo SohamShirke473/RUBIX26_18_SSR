@@ -30,8 +30,10 @@ export default defineSchema({
 
         // location
         locationName: v.string(),
+        latitude: v.optional(v.number()),
+        longitude: v.optional(v.number()),
 
-        // lifec
+        // lifecycle
         status: v.union(
             v.literal("open"),
             v.literal("matched"),
