@@ -13,6 +13,7 @@ import {
 const Footer = () => {
   const footerLinks = {
     platform: [
+      { label: "About Us", href: "/about" },
       { label: "How It Works", href: "/how-it-works" },
       { label: "Browse Items", href: "/listings" },
       { label: "Report Lost", href: "/report-lost" },
@@ -43,7 +44,7 @@ const Footer = () => {
                 <MapPin className="h-5 w-5" />
               </div>
               <span className="font-bold text-lg">
-                FindIt<span className="text-teal-600 dark:text-teal-400">Hub</span>
+                FindIt<span className="text-teal-600 dark:text-teal-400"> Hub</span>
               </span>
             </Link>
 
@@ -96,13 +97,17 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-slate-900 dark:text-slate-50 text-sm mb-4">Contact</h4>
             <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                <Mail className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                support@findithub.com
+              <li className="flex items-center gap-3 text-sm">
+                <Mail className="h-4 w-4 text-teal-600 dark:text-teal-400 flex-shrink-0" />
+                <a href="mailto:support@findithub.com" className="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                  support@findithub.com
+                </a>
               </li>
-              <li className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                <Phone className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                1-800-FIND-IT
+              <li className="flex items-center gap-3 text-sm">
+                <Phone className="h-4 w-4 text-teal-600 dark:text-teal-400 flex-shrink-0" />
+                <a href="tel:+18003463481" className="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                  +1 (800) 346-3481
+                </a>
               </li>
             </ul>
           </div>
