@@ -24,15 +24,14 @@ export const generateDescription = action({
 
         const prompt = `
       Analyze this image of a lost/found item. 
-      Generate a detailed, objective listing description. 
+      Generate a concise, objective listing description. 
       Output strictly in JSON format with the following fields:
       - title: A short, clear title (e.g. "Black Leather Wallet", "iPhone 13 Pro").
-      - description: A detailed description of physical appearance, distinctive features, scratches, stickers, brands, etc. Keep it professional.
+      - description: A concise description (2-3 lines max) focusing ONLY on unique, distinctive features (e.g., specific scratches, stickers, modifications, rare colorways). Avoid generic filler text.
       - category: One of ["wallet", "phone", "keys", "bag", "documents", "electronics", "jewelry", "clothing", "watch", "glasses", "laptop", "tablet", "headphones", "camera", "musical_instrument", "sports_gear", "tools", "pet", "tickets", "id_card", "cash", "other"].
       - color: Dominant color (e.g. "Black", "Red").
       - brand: Visible brand name or "Unknown".
       Do not include markdown formatting like \`\`\`json. Just the raw JSON object.
-      keep it under 300 words.
     `;
 
         const maxRetries = 3;
