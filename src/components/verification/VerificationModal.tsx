@@ -19,9 +19,10 @@ import { motion, AnimatePresence } from "framer-motion";
 interface VerificationModalProps {
     listingId: Id<"listings">;
     listingTitle: string;
+    isResolved: boolean;
 }
 
-export default function VerificationModal({ listingId, listingTitle }: VerificationModalProps) {
+export default function VerificationModal({ listingId, listingTitle, isResolved }: VerificationModalProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Fetch current claim status
@@ -96,6 +97,18 @@ export default function VerificationModal({ listingId, listingTitle }: Verificat
     if (claim === undefined) return null; // Loading
 
     if (claim === null) {
+        if (isResolved) {
+            return (
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-900/20 dark:border-slate-800 text-center space-y-2">
+                    <Lock className="w-6 h-6 mx-auto text-slate-400" />
+                    <h3 className="font-medium text-slate-700 dark:text-slate-400">Listing Resolved</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-500">
+                        This item has been returned to its owner or the text is no longer active.
+                    </p>
+                </div>
+            );
+        }
+
         return (
             <div className="flex flex-col gap-2">
                 <Button

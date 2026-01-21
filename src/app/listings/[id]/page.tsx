@@ -140,7 +140,7 @@ export default function ListingDetailPage() {
                                     {/* Claimant View: Request Verification */}
                                     {!isOwner && listing.type === "found" && ( // Only show on found items if not owner
                                         <div className="mb-4">
-                                            <VerificationModal listingId={listingId} listingTitle={listing.title} />
+                                            <VerificationModal listingId={listingId} listingTitle={listing.title} isResolved={listing.status === "resolved"} />
                                         </div>
                                     )}
 

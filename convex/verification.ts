@@ -46,6 +46,13 @@ export const initiateClaim = mutation({
         const user = await ctx.auth.getUserIdentity();
         if (!user) throw new Error("Unauthorized");
 
+
+        const listing = await ctx.db.get(args.listingId);
+        if (!listing) throw new Error("Listing not found");
+        if (listing.status === "resolved") {
+            throw new Error("This listing is already resolved");
+        }
+
         const existingApproved = await ctx.db
             .query("verificationClaims")
             .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
