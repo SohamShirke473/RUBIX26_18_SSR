@@ -273,12 +273,41 @@ const ReportFound: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-6 bg-slate-50/40 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 flex gap-4">
-              <ShieldCheck className="text-teal-500 shrink-0" size={24} />
-              <p className="text-sm text-slate-600 font-medium">
-                <strong>Safety First:</strong> Avoid sharing your personal phone
-                number in the public description.
-              </p>
+            <div className="p-6 bg-slate-50/40 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50">
+              <div className="flex items-start gap-4 mb-4">
+                <ShieldCheck className="text-teal-500 shrink-0 mt-0.5" size={24} />
+                <div>
+                  <h3 className="text-sm font-black text-slate-700 dark:text-slate-300 mb-1">Safety First</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">To verify the rightful owner, keep certain details private:</p>
+                </div>
+              </div>
+              <ul className="space-y-2 ml-10 text-xs text-slate-600 dark:text-slate-400">
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Do not disclose exact contents (e.g., wallet items or cash amount)</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Do not reveal serial numbers, IMEI, or ID numbers</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Avoid sharing details visible in photos</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Keep subtle wear, damage, or personal modifications private</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Ask claimants to describe unique, non-visible features</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-teal-500 font-bold">•</span>
+                  <span>Verify with information only the true owner would know</span>
+                </li>
+              </ul>
+              <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-3 ml-10">This helps prevent false claims and ensures secure recovery.</p>
             </div>
           </div>
 
