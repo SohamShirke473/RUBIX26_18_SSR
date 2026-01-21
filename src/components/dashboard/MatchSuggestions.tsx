@@ -76,9 +76,7 @@ export default function MatchSuggestions() {
                                         <div>
                                             <div className="flex justify-between items-start gap-1">
                                                 <h3 className="font-semibold text-sm line-clamp-1">{matchedListing.title}</h3>
-                                                <span className="text-xs font-bold text-teal-600 dark:text-teal-400 shrink-0">
-                                                    {Math.round(score * 100)}% Match
-                                                </span>
+
                                             </div>
                                             <p className="text-xs text-muted-foreground dark:text-slate-400 line-clamp-1 mt-0.5">
                                                 Matches your &quot;{myListing.title}&quot;

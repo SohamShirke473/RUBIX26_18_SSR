@@ -273,9 +273,7 @@ export default function ListingDetailPage() {
                                                             {match.matchedListing?.title || "Unknown item"}
                                                         </Link>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {Math.round(match.score * 100)}% match
-                                                            </Badge>
+
                                                             <Badge
                                                                 variant={
                                                                     match.status === "suggested"

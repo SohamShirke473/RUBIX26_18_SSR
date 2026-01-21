@@ -90,15 +90,15 @@ export default function LandingPage() {
             tag: "ANTI-FRAUD PROTECTION",
             image: "/landing2.png"
         },
-        {
-            title: "Accessible Intelligence",
-            description: "Built from the ground up for inclusivity. High contrast modes, screen reader optimizations, and clear visual hierarchies for everyone.",
-            color: "bg-teal-600",
-            gradient: "from-teal-500 to-emerald-600",
-            icon: Eye,
-            tag: "WCAG 2.1 COMPLIANT",
-            image: "/image3.png"
-        }
+        // {
+        //     title: "Accessible Intelligence",
+        //     description: "Built from the ground up for inclusivity. High contrast modes, screen reader optimizations, and clear visual hierarchies for everyone.",
+        //     color: "bg-teal-600",
+        //     gradient: "from-teal-500 to-emerald-600",
+        //     icon: Eye,
+        //     tag: "WCAG 2.1 COMPLIANT",
+        //     image: "/image3.png"
+        // }
     ];
 
     return (
